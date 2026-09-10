@@ -674,6 +674,19 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 .site-view-counter .view-number{font-size:14px;font-weight:900}
 @media (min-width:900px){.site-view-counter{max-width:1180px;margin:0 auto 16px}}
 </style>
+<style id="cart-mode-css">
+.cart-top-btn{position:relative;border:0;background:#fff;border:1px solid #eadcf5;color:#6f3a91;border-radius:14px;padding:9px 12px;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.cart-count{display:inline-flex;min-width:19px;height:19px;padding:0 5px;align-items:center;justify-content:center;border-radius:999px;background:#8b4bb2;color:#fff;font-size:10px;margin-left:4px;}
+.cart-add-btn{border:0;border-radius:11px;background:#8b4bb2;color:#fff;font-weight:800;font-size:11px;padding:8px 10px;cursor:pointer;box-shadow:0 4px 12px rgba(139,75,178,.18);}
+.cart-add-btn:active{transform:scale(.97)}
+.cart-overlay{position:fixed;inset:0;z-index:7000;display:none;align-items:center;justify-content:center;background:rgba(20,15,30,.72);padding:16px}
+.cart-overlay.open{display:flex}
+.cart-box{width:min(560px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.3)}
+.cart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.cart-title{font-size:18px;font-weight:900;color:#5d3379}.cart-close{border:0;width:38px;height:38px;border-radius:50%;background:#f2eaf7;color:#6f3a91;font-size:24px;cursor:pointer}
+.cart-item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 4px;border-bottom:1px solid #eee}.cart-item-name{font-weight:800;font-size:13px}.cart-item-meta{font-size:11px;color:#777;margin-top:4px}.cart-controls{display:flex;align-items:center;gap:5px}.cart-qty{min-width:24px;text-align:center;font-weight:800}.cart-qty-btn,.cart-remove{border:0;border-radius:8px;background:#f3eef6;color:#6f3a91;width:28px;height:28px;cursor:pointer;font-weight:900}.cart-remove{background:#fff0f0;color:#b44;font-size:13px}
+.cart-total{display:flex;justify-content:space-between;font-weight:900;font-size:14px;padding:14px 4px}.cart-checkout{width:100%;border:0;border-radius:13px;background:#7b3fa1;color:#fff;padding:12px;font-weight:900;cursor:pointer}.cart-note{font-size:10px;color:#777;text-align:center;margin-top:8px;line-height:1.5}.cart-empty{text-align:center;padding:28px 10px;color:#888;font-size:13px}
+@media(max-width:600px){.cart-overlay{align-items:flex-end;padding:0}.cart-box{width:100%;max-height:88vh;border-radius:24px 24px 0 0}}
+</style>
 <style id="theme-example-viewer-css">
 .theme-main-image{cursor:zoom-in;-webkit-tap-highlight-color:transparent;}
 .theme-example-overlay{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;background:rgba(20,15,30,.78);padding:18px;}
@@ -755,6 +768,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="my-orders-wrap">
 <button id="myOrdersBtn" type="button">📦 รายการที่ฉันสั่ง</button>
+<button class="cart-top-btn" id="cartBtn" type="button">🛒 ตะกร้า <span class="cart-count" id="cartCount">0</span></button>
 </div>
 <div class="section-title" id="sectionTitle">รวมหมวดหมู่สินค้าสุดฮิต</div>
 <a class="tab-item" href="#all" id="backToAll" style="display:none;margin:12px auto 18px;text-decoration:none;text-align:center;position:relative;z-index:10;">← กลับไปดูทุกหมวดหมู่</a>
@@ -829,7 +843,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://store.line.me/S/shop/theme/detail?id=0bcd100f-87bc-4987-b3b8-3f7a9b094eac&amp;lang=th&amp;utm_source=gnsh_themeDetail">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -845,7 +859,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://line.me/S/shop/theme/detail?id=8242d786-c455-40a4-bbdd-fd6a1adf213f&amp;lang=th&amp;utm_source=gnsh_themeDetail" rel="noopener" target="_blank">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -861,7 +875,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://line.me/S/shop/theme/detail?id=e8620b7a-cdd9-4193-b126-dadfa1a96e00&amp;lang=th&amp;utm_source=gnsh_themeDetail" rel="noopener" target="_blank">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -877,7 +891,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://line.me/S/shop/theme/detail?id=2b4eaf24-1d14-478b-8159-d35f1073ccce&amp;lang=th&amp;utm_source=gnsh_themeDetail" rel="noopener" target="_blank">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -893,7 +907,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://line.me/S/shop/theme/detail?id=3a296dea-67d9-44d0-ad8b-7bd8a5045ab8&amp;lang=th&amp;utm_source=gnsh_themeDetail" rel="noopener" target="_blank">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -910,7 +924,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div style="display:flex;gap:6px;align-items:center;">
 <a class="poster-btn" href="https://line.me/S/shop/theme/detail?id=f9ccdc3a-db7e-49c6-8f3f-499ca9781488&amp;lang=th&amp;utm_source=gnsh_themeDetail" rel="noopener" target="_blank">🔗 ดูธีม</a>
 <a class="poster-btn" href="https://line.me/R/ti/p/@635plmxg">💬 สั่งซื้อ</a>
-</div>
+<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button></div>
 </div>
 </div>
 </div>
@@ -965,6 +979,15 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="section-mini-title">📁 หลักฐานที่บันทึกไว้</div><div id="proofList"></div>
 </section>
+</div>
+</div>
+<div aria-hidden="true" class="cart-overlay" id="cartOverlay">
+<div aria-labelledby="cartTitle" aria-modal="true" class="cart-box" role="dialog">
+<div class="cart-head"><div class="cart-title" id="cartTitle">🛒 ตะกร้าสินค้า</div><button class="cart-close" id="closeCart" type="button" aria-label="ปิด">×</button></div>
+<div id="cartList"></div>
+<div class="cart-total"><span>รวมรายการ</span><span id="cartTotal">0 บาท</span></div>
+<button class="cart-checkout" id="cartCheckout" type="button">💬 สั่งซื้อทั้งหมดทาง LINE</button>
+<div class="cart-note">ระบบจะคัดลอกรายการสินค้าในตะกร้า แล้วเปิด LINE ร้านให้คุณส่งรายการสั่งซื้อ</div>
 </div>
 </div>
 <div aria-hidden="true" class="orders-history-overlay" id="ordersHistoryOverlay">
@@ -1418,6 +1441,59 @@ window.enterSite = function () {
   close.addEventListener('click',closeExample);
   overlay.addEventListener('click',e=>{if(e.target===overlay) closeExample();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open')) closeExample();});
+})();
+</script>
+
+<script id="cart-mode-js">
+(function(){
+ const KEY='khunnano-cart-v1';
+ const LINE='https://line.me/R/ti/p/@635plmxg';
+ function getCart(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+ function saveCart(c){try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}}
+ function money(v){const n=Number(String(v||'').replace(/[^0-9.]/g,''));return isNaN(n)?0:n}
+ function updateCount(){const n=getCart().reduce((a,x)=>a+(x.qty||1),0);const el=document.getElementById('cartCount');if(el)el.textContent=n}
+ function add(card){
+   if(!card)return;
+   const name=(card.querySelector('.poster-name')?.textContent||'สินค้า').trim();
+   const priceText=(card.querySelector('.poster-price')?.textContent||'').trim();
+   const price=money(priceText);
+   const link=card.getAttribute('data-product-link')||'';
+   const img=card.querySelector('img')?.src||'';
+   const c=getCart(); const found=c.find(x=>x.link===link&&x.name===name);
+   if(found)found.qty=(found.qty||1)+1; else c.push({name,price,priceText,link,img,qty:1});
+   saveCart(c); updateCount(); showToast('🛒 เพิ่ม '+name+' ลงตะกร้าแล้ว');
+ }
+ function render(){
+   const box=document.getElementById('cartList'); if(!box)return;
+   const c=getCart();
+   if(!c.length){box.innerHTML='<div class="cart-empty">🛒 ยังไม่มีสินค้าในตะกร้า<br>กด “เพิ่มลงตะกร้า” ที่สินค้าที่ต้องการได้เลยครับ</div>';document.getElementById('cartTotal').textContent='0 บาท';return;}
+   box.innerHTML=c.map((x,i)=>'<div class="cart-item"><div><div class="cart-item-name">'+esc(x.name)+'</div><div class="cart-item-meta">'+esc(x.priceText||((x.price||0)+' บาท'))+'</div></div><div class="cart-controls"><button class="cart-qty-btn" data-i="'+i+'" data-act="minus" type="button">−</button><span class="cart-qty">'+(x.qty||1)+'</span><button class="cart-qty-btn" data-i="'+i+'" data-act="plus" type="button">+</button><button class="cart-remove" data-i="'+i+'" data-act="remove" type="button">×</button></div></div>').join('');
+   const total=c.reduce((a,x)=>a+(Number(x.price)||0)*(x.qty||1),0); document.getElementById('cartTotal').textContent=total.toLocaleString('th-TH')+' บาท';
+ }
+ function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ async function copy(t){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}try{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.focus();a.select();const ok=document.execCommand('copy');a.remove();return ok}catch(e){return false}}
+ function showToast(msg){let t=document.getElementById('cartToast');if(!t){t=document.createElement('div');t.id='cartToast';t.style.cssText='position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:99999;background:#222;color:#fff;padding:11px 15px;border-radius:14px;font-size:12px;font-weight:700;max-width:88%;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,.22)';document.body.appendChild(t)}t.textContent=msg;clearTimeout(window.__cartToast);window.__cartToast=setTimeout(()=>t.remove(),2200)}
+ document.addEventListener('DOMContentLoaded',function(){
+   updateCount();
+   const overlay=document.getElementById('cartOverlay');
+   document.addEventListener('click',function(e){
+     const addBtn=e.target.closest&&e.target.closest('.cart-add-btn');
+     if(addBtn){e.preventDefault();e.stopPropagation();add(addBtn.closest('.poster-card'));return;}
+     const cartBtn=e.target.closest&&e.target.closest('#cartBtn');
+     if(cartBtn){e.preventDefault();render();overlay?.classList.add('open');overlay?.setAttribute('aria-hidden','false');return;}
+     const close=e.target.closest&&e.target.closest('#closeCart');
+     if(close){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
+     if(e.target===overlay){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
+     const ctl=e.target.closest&&e.target.closest('[data-act]');
+     if(ctl&&ctl.closest('#cartList')){const c=getCart(),i=Number(ctl.dataset.i),a=ctl.dataset.act;if(!c[i])return;if(a==='plus')c[i].qty=(c[i].qty||1)+1;if(a==='minus'){c[i].qty=(c[i].qty||1)-1;if(c[i].qty<1)c.splice(i,1)}if(a==='remove')c.splice(i,1);saveCart(c);updateCount();render();return;}
+     const checkout=e.target.closest&&e.target.closest('#cartCheckout');
+     if(checkout){const c=getCart();if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}let msg='คำสั่งซื้อจากเว็บไซต์
+';c.forEach((x,i)=>{msg+='
+'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'
+🔗 '+x.link:'')+'
+'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}
+   },true);
+ });
 })();
 </script>
 </body>
