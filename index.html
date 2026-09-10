@@ -435,6 +435,38 @@
 
 
 
+        /* ===== Khunnano Member Header Menu ===== */
+        .khunnano-member-tools { position:absolute; top:10px; right:12px; display:flex; align-items:center; gap:7px; z-index:20; }
+        .khunnano-avatar-btn, .khunnano-menu-btn { width:38px; height:38px; border:1px solid rgba(138,75,175,.16); border-radius:50%; background:var(--card-bg); color:var(--tab-color); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 9px rgba(0,0,0,.08); font-size:17px; }
+        .khunnano-menu-btn { border-radius:12px; font-size:20px; line-height:1; }
+        .khunnano-avatar-btn:active, .khunnano-menu-btn:active { transform:scale(.95); }
+        .khunnano-member-menu { position:absolute; top:52px; right:0; width:220px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--card-border); border-radius:16px; padding:8px; box-shadow:0 12px 35px rgba(0,0,0,.18); display:none; }
+        .khunnano-member-menu.open { display:block; animation:khunnanoMenuIn .16s ease-out both; }
+        @keyframes khunnanoMenuIn { from{opacity:0;transform:translateY(-5px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .khunnano-menu-user { padding:10px 11px; border-bottom:1px solid var(--card-border); margin-bottom:5px; }
+        .khunnano-menu-name { font-size:13px; font-weight:800; }
+        .khunnano-menu-email { font-size:10px; color:var(--text-sub); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .khunnano-menu-item { width:100%; border:0; background:transparent; color:var(--text-main); text-align:left; padding:10px 11px; border-radius:10px; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+        .khunnano-menu-item:hover { background:var(--tab-bg); color:var(--tab-color); }
+        .khunnano-menu-logout { color:#b43a3a; }
+        .khunnano-menu-login { color:var(--tab-color); }
+
+        /* ===== Khunnano Member Profile ===== */
+        .khunnano-profile-overlay { position:fixed; inset:0; z-index:5100; display:none; align-items:flex-end; justify-content:center; background:rgba(30,20,45,.45); }
+        .khunnano-profile-overlay.open { display:flex; }
+        .khunnano-profile-box { width:min(430px,100%); background:var(--screen-bg); color:var(--text-main); border-radius:24px 24px 0 0; padding:20px; box-shadow:0 -10px 35px rgba(0,0,0,.2); }
+        .khunnano-profile-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+        .khunnano-profile-title { font-size:17px; font-weight:800; }
+        #khunnanoProfileClose { border:0; width:34px; height:34px; border-radius:50%; background:var(--tab-bg); color:var(--tab-color); font-size:22px; cursor:pointer; }
+        .khunnano-profile-avatar-preview { width:76px; height:76px; border-radius:50%; margin:4px auto 12px; display:flex; align-items:center; justify-content:center; background:var(--tab-bg); font-size:40px; border:2px solid var(--card-border); }
+        .khunnano-profile-label { display:block; font-size:11px; font-weight:700; margin:10px 0 5px; color:var(--text-sub); }
+        .khunnano-profile-input { width:100%; border:1px solid #ddd5ee; border-radius:11px; padding:11px; background:var(--card-bg); color:var(--text-main); font-family:inherit; font-size:12px; }
+        .khunnano-avatar-choices { display:flex; flex-wrap:wrap; gap:7px; margin-top:7px; justify-content:center; }
+        .khunnano-avatar-choice { width:42px; height:42px; border:1px solid var(--card-border); border-radius:50%; background:var(--card-bg); cursor:pointer; font-size:22px; }
+        .khunnano-avatar-choice.selected { outline:2px solid var(--tab-color); background:var(--tab-bg); }
+        #khunnanoProfileSave { width:100%; margin-top:14px; border:0; border-radius:12px; padding:11px; background:#8a4baf; color:#fff; font-weight:800; font-family:inherit; cursor:pointer; }
+        #khunnanoProfileStatus { min-height:18px; margin-top:8px; text-align:center; font-size:11px; color:var(--text-sub); }
+
         /* ===== Khunnano Login UI (separate from cart/customer center) ===== */
         .khunnano-login-home { padding: 0 20px 14px; }
         #khunnanoLoginBtn { width:100%; border:1px solid rgba(138,75,175,.16); cursor:pointer; padding:11px 14px; border-radius:14px; background:var(--tab-bg); color:var(--tab-color); font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.07); }
@@ -745,6 +777,20 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div class="brand-header">
 <div class="brand-title">✨ STICKER KHUNNANO</div>
 <input aria-label="เปิดโหมดมืด" class="theme-checkbox" id="darkModeToggle" type="checkbox"/><label class="theme-toggle-btn" for="darkModeToggle" id="themeBtn">🌙 โหมดมืด</label>
+<div class="khunnano-member-tools">
+<button aria-label="บัญชีของฉัน" class="khunnano-avatar-btn" id="khunnanoAvatarBtn" type="button">👤</button>
+<button aria-expanded="false" aria-label="เมนูสมาชิก" class="khunnano-menu-btn" id="khunnanoMenuBtn" type="button">☰</button>
+<div class="khunnano-member-menu" id="khunnanoMemberMenu">
+<div class="khunnano-menu-user">
+<div class="khunnano-menu-name" id="khunnanoMenuName">ผู้เยี่ยมชม</div>
+<div class="khunnano-menu-email" id="khunnanoMenuEmail">ยังไม่ได้เข้าสู่ระบบ</div>
+</div>
+<button class="khunnano-menu-item khunnano-menu-login" id="khunnanoMenuLogin" type="button">🔐 เข้าสู่ระบบ / สมัครสมาชิก</button>
+<button class="khunnano-menu-item" id="khunnanoMenuProfile" type="button" style="display:none;">👤 โปรไฟล์ของฉัน</button>
+<button class="khunnano-menu-item" id="khunnanoMenuOrders" type="button" style="display:none;">📦 ประวัติการสั่งซื้อ</button>
+<button class="khunnano-menu-item khunnano-menu-logout" id="khunnanoMenuLogout" type="button" style="display:none;">🚪 ออกจากระบบ</button>
+</div>
+</div>
 </div>
 <!-- แถบแสดงสถานะเปิด/ปิดร้านตามเวลาจริง -->
 <div class="store-status-bar">
@@ -779,6 +825,21 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div class="khunnano-login-home">
 <button id="khunnanoLoginBtn" type="button">🔐 เข้าสู่ระบบ / สมัครสมาชิก</button>
 </div>
+
+<div aria-hidden="true" class="khunnano-profile-overlay" id="khunnanoProfileOverlay">
+<div aria-modal="true" class="khunnano-profile-box" role="dialog">
+<div class="khunnano-profile-head"><div class="khunnano-profile-title">👤 โปรไฟล์ของฉัน</div><button aria-label="ปิด" id="khunnanoProfileClose" type="button">×</button></div>
+<div class="khunnano-profile-avatar-preview" id="khunnanoProfileAvatarPreview">👤</div>
+<label class="khunnano-profile-label">เลือกอวตาร</label>
+<div class="khunnano-avatar-choices" id="khunnanoAvatarChoices">
+<button class="khunnano-avatar-choice" type="button" data-avatar="🐰">🐰</button><button class="khunnano-avatar-choice" type="button" data-avatar="🐻">🐻</button><button class="khunnano-avatar-choice" type="button" data-avatar="🐱">🐱</button><button class="khunnano-avatar-choice" type="button" data-avatar="🐶">🐶</button><button class="khunnano-avatar-choice" type="button" data-avatar="🦊">🦊</button><button class="khunnano-avatar-choice" type="button" data-avatar="🐼">🐼</button><button class="khunnano-avatar-choice" type="button" data-avatar="🐸">🐸</button><button class="khunnano-avatar-choice" type="button" data-avatar="⭐">⭐</button>
+</div>
+<label class="khunnano-profile-label" for="khunnanoProfileName">ชื่อที่แสดง</label>
+<input class="khunnano-profile-input" id="khunnanoProfileName" maxlength="40" placeholder="เช่น Frame" type="text" />
+<button id="khunnanoProfileSave" type="button">บันทึกโปรไฟล์</button>
+<div id="khunnanoProfileStatus"></div>
+</div></div>
+
 <div aria-hidden="true" class="khunnano-auth-overlay" id="khunnanoAuthOverlay">
 <div aria-modal="true" class="khunnano-auth-box" role="dialog">
 <div class="khunnano-auth-head"><div class="khunnano-auth-title">🔐 บัญชี STICKER KHUNNANO</div><button aria-label="ปิด" id="khunnanoAuthClose" type="button">×</button></div>
@@ -1036,6 +1097,32 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/login.js"></script>
+
+<script>
+(function(){
+  const menuBtn=document.getElementById("khunnanoMenuBtn"), menu=document.getElementById("khunnanoMemberMenu");
+  const avatarBtn=document.getElementById("khunnanoAvatarBtn"), profileBtn=document.getElementById("khunnanoMenuProfile");
+  const overlay=document.getElementById("khunnanoProfileOverlay"), closeBtn=document.getElementById("khunnanoProfileClose");
+  const preview=document.getElementById("khunnanoProfileAvatarPreview"), nameInput=document.getElementById("khunnanoProfileName");
+  const saveBtn=document.getElementById("khunnanoProfileSave"), status=document.getElementById("khunnanoProfileStatus");
+  const choices=[...document.querySelectorAll(".khunnano-avatar-choice")];
+  if(!menuBtn||!menu||!overlay) return;
+  let selectedAvatar="👤";
+  function key(){ return "khunnano-profile-v1"; }
+  function load(){ try{return JSON.parse(localStorage.getItem(key())||"{}");}catch(e){return{};} }
+  function apply(){ const p=load(); selectedAvatar=p.avatar||"👤"; preview.textContent=selectedAvatar; nameInput.value=p.name||""; choices.forEach(b=>b.classList.toggle("selected",b.dataset.avatar===selectedAvatar)); avatarBtn.textContent=selectedAvatar; }
+  function open(){ apply(); overlay.classList.add("open"); overlay.setAttribute("aria-hidden","false"); menu.classList.remove("open"); }
+  function close(){ overlay.classList.remove("open"); overlay.setAttribute("aria-hidden","true"); }
+  menuBtn.addEventListener("click",()=>{menu.classList.toggle("open");menuBtn.setAttribute("aria-expanded",menu.classList.contains("open")?"true":"false");});
+  document.addEventListener("click",e=>{ if(!e.target.closest(".khunnano-member-tools")) menu.classList.remove("open"); });
+  avatarBtn.addEventListener("click",open); profileBtn&&profileBtn.addEventListener("click",open);
+  closeBtn.addEventListener("click",close); overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
+  choices.forEach(b=>b.addEventListener("click",()=>{selectedAvatar=b.dataset.avatar;preview.textContent=selectedAvatar;choices.forEach(x=>x.classList.remove("selected"));b.classList.add("selected");}));
+  saveBtn.addEventListener("click",()=>{const name=nameInput.value.trim(); if(!name){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return;} localStorage.setItem(key(),JSON.stringify({name,avatar:selectedAvatar})); avatarBtn.textContent=selectedAvatar; status.textContent="บันทึกโปรไฟล์แล้ว ✓"; const n=document.getElementById("khunnanoMenuName"); if(n)n.textContent=name; setTimeout(close,500);});
+  apply();
+})();
+</script>
+
 <script>
 (function () {
   const btn = document.getElementById("khunnanoLoginBtn");
@@ -1132,6 +1219,65 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
   });
 
   refreshUser();
+})();
+</script>
+<script>
+(function () {
+  const avatarBtn = document.getElementById("khunnanoAvatarBtn");
+  const menuBtn = document.getElementById("khunnanoMenuBtn");
+  const menu = document.getElementById("khunnanoMemberMenu");
+  const menuName = document.getElementById("khunnanoMenuName");
+  const menuEmail = document.getElementById("khunnanoMenuEmail");
+  const menuLogin = document.getElementById("khunnanoMenuLogin");
+  const menuProfile = document.getElementById("khunnanoMenuProfile");
+  const menuOrders = document.getElementById("khunnanoMenuOrders");
+  const menuLogout = document.getElementById("khunnanoMenuLogout");
+  const loginBtn = document.getElementById("khunnanoLoginBtn");
+  if (!avatarBtn || !menuBtn || !menu || !window.khunnanoLogin) return;
+
+  function closeMenu() {
+    menu.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  function toggleMenu() {
+    const open = !menu.classList.contains("open");
+    menu.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  async function refreshMemberMenu() {
+    try {
+      const result = await window.khunnanoLogin.getUser();
+      const user = result && result.data && result.data.user;
+      if (user) {
+        menuName.textContent = (user.user_metadata && user.user_metadata.display_name) || "สมาชิก STICKER KHUNNANO";
+        menuEmail.textContent = user.email || "";
+        menuLogin.style.display = "none";
+        menuProfile.style.display = "block";
+        menuOrders.style.display = "block";
+        menuLogout.style.display = "block";
+      } else {
+        menuName.textContent = "ผู้เยี่ยมชม";
+        menuEmail.textContent = "ยังไม่ได้เข้าสู่ระบบ";
+        menuLogin.style.display = "block";
+        menuProfile.style.display = "none";
+        menuOrders.style.display = "none";
+        menuLogout.style.display = "none";
+      }
+    } catch (error) { console.error("Member menu refresh failed:", error); }
+  }
+  menuBtn.addEventListener("click", function(e){ e.stopPropagation(); toggleMenu(); });
+  avatarBtn.addEventListener("click", toggleMenu);
+  menuLogin.addEventListener("click", function(){ closeMenu(); if(loginBtn) loginBtn.click(); });
+  menuProfile.addEventListener("click", function(){ closeMenu(); alert("ส่วนโปรไฟล์สมาชิกกำลังทำในขั้นถัดไปครับ"); });
+  menuOrders.addEventListener("click", function(){ closeMenu(); const b=document.getElementById("myOrdersBtn"); if(b) b.click(); });
+  menuLogout.addEventListener("click", async function(){
+    const result=await window.khunnanoLogin.signOut();
+    if(result && result.error){ alert("ออกจากระบบไม่สำเร็จ: "+result.error.message); return; }
+    closeMenu(); await refreshMemberMenu();
+    if(loginBtn) loginBtn.textContent="🔐 เข้าสู่ระบบ / สมัครสมาชิก";
+  });
+  document.addEventListener("click", function(e){ if(!e.target.closest(".khunnano-member-tools")) closeMenu(); });
+  document.addEventListener("DOMContentLoaded", refreshMemberMenu);
 })();
 </script>
 <script>
