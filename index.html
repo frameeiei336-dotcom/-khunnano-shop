@@ -1164,22 +1164,37 @@ apply();
     try {
       const result = await window.khunnanoLogin.getUser();
       const user = result && result.data && result.data.user;
+      const topLogin = document.getElementById("khunnanoTopLogin");
+      const menuName = document.getElementById("khunnanoMenuName");
+      const menuEmail = document.getElementById("khunnanoMenuEmail");
+      const menuLogin = document.getElementById("khunnanoMenuLogin");
+      const menuProfile = document.getElementById("khunnanoMenuProfile");
+      const menuOrders = document.getElementById("khunnanoMenuOrders");
+      const menuLogout = document.getElementById("khunnanoMenuLogout");
       if (user) {
         btn.textContent = "👤 บัญชีของฉัน";
-        signIn.style.display = "none";
-        signUp.style.display = "none";
-        signOut.style.display = "block";
+        signIn.style.display = "none"; signUp.style.display = "none"; signOut.style.display = "block";
         userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
+        if (topLogin) topLogin.style.display = "none";
+        if (menuName) menuName.textContent = "สมาชิก STICKER KHUNNANO";
+        if (menuEmail) menuEmail.textContent = user.email || "เข้าสู่ระบบแล้ว";
+        if (menuLogin) menuLogin.style.display = "none";
+        if (menuProfile) menuProfile.style.display = "block";
+        if (menuOrders) menuOrders.style.display = "block";
+        if (menuLogout) menuLogout.style.display = "block";
       } else {
         btn.textContent = "🔐 เข้าสู่ระบบ / สมัครสมาชิก";
-        signIn.style.display = "block";
-        signUp.style.display = "block";
-        signOut.style.display = "none";
+        signIn.style.display = "block"; signUp.style.display = "block"; signOut.style.display = "none";
         userInfo.textContent = "";
+        if (topLogin) topLogin.style.display = "block";
+        if (menuName) menuName.textContent = "ผู้เยี่ยมชม";
+        if (menuEmail) menuEmail.textContent = "ยังไม่ได้เข้าสู่ระบบ";
+        if (menuLogin) menuLogin.style.display = "block";
+        if (menuProfile) menuProfile.style.display = "none";
+        if (menuOrders) menuOrders.style.display = "none";
+        if (menuLogout) menuLogout.style.display = "none";
       }
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) { console.error(error); }
   }
 
   btn.addEventListener("click", openAuth);
@@ -1198,8 +1213,8 @@ apply();
       status.textContent = "เข้าสู่ระบบไม่สำเร็จ: " + result.error.message;
       return;
     }
-    status.textContent = "เข้าสู่ระบบสำเร็จ ✅";
     await refreshUser();
+    closeAuth();
   });
 
   signUp.addEventListener("click", async function () {
@@ -1212,10 +1227,13 @@ apply();
       status.textContent = "สมัครสมาชิกไม่สำเร็จ: " + result.error.message;
       return;
     }
-    status.textContent = result.data && result.data.session
-      ? "สมัครสมาชิกสำเร็จและเข้าสู่ระบบแล้ว ✅"
-      : "สมัครสำเร็จ กรุณาตรวจอีเมลเพื่อยืนยันบัญชี 📧";
-    await refreshUser();
+    if (result.data && result.data.session) {
+      await refreshUser();
+      closeAuth();
+    } else {
+      status.textContent = "สมัครสำเร็จ กรุณาตรวจอีเมลเพื่อยืนยันบัญชี 📧";
+      await refreshUser();
+    }
   });
 
   signOut.addEventListener("click", async function () {
@@ -1229,7 +1247,44 @@ apply();
     await refreshUser();
   });
 
+  const menuLogin = document.getElementById("khunnanoMenuLogin");
+  const menuLogout = document.getElementById("khunnanoMenuLogout");
+  if (menuLogin) menuLogin.addEventListener("click", function () {
+    const b = document.getElementById("khunnanoLoginBtn");
+    if (b) b.click();
+    const menu = document.getElementById("khunnanoMemberMenu");
+    const menuBtn = document.getElementById("khunnanoMenuBtn");
+    if (menu) menu.classList.remove("open");
+    if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+  });
+  if (menuLogout) menuLogout.addEventListener("click", async function () {
+    const result = await window.khunnanoLogin.signOut();
+    if (result.error) { console.error(result.error); return; }
+    const menu = document.getElementById("khunnanoMemberMenu");
+    const menuBtn = document.getElementById("khunnanoMenuBtn");
+    if (menu) menu.classList.remove("open");
+    if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+    await refreshUser();
+  });
+
   refreshUser();
+
+  // อัปเดตเมนูทันทีเมื่อสถานะล็อกอินเปลี่ยน โดยไม่ต้องรีเฟรชหน้า
+  (async function () {
+    try {
+      const supabase = await window.khunnanoAuth.ready;
+      supabase.auth.onAuthStateChange(async function (_event, session) {
+        await refreshUser();
+        if (session && session.user) {
+          closeAuth();
+          const menu = document.getElementById("khunnanoMemberMenu");
+          const menuBtn = document.getElementById("khunnanoMenuBtn");
+          if (menu) menu.classList.remove("open");
+          if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    } catch (error) { console.error(error); }
+  })();
 })();
 </script>
 
