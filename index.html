@@ -1037,6 +1037,104 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <script src="/js/auth.js"></script>
 <script src="/js/login.js"></script>
 <script>
+(function () {
+  const btn = document.getElementById("khunnanoLoginBtn");
+  const overlay = document.getElementById("khunnanoAuthOverlay");
+  const closeBtn = document.getElementById("khunnanoAuthClose");
+  const email = document.getElementById("khunnanoAuthEmail");
+  const password = document.getElementById("khunnanoAuthPassword");
+  const signIn = document.getElementById("khunnanoSignIn");
+  const signUp = document.getElementById("khunnanoSignUp");
+  const signOut = document.getElementById("khunnanoSignOut");
+  const status = document.getElementById("khunnanoAuthStatus");
+  const userInfo = document.getElementById("khunnanoUserInfo");
+
+  if (!btn || !overlay || !window.khunnanoLogin) return;
+
+  function openAuth() {
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.style.display = "flex";
+    status.textContent = "";
+  }
+
+  function closeAuth() {
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.style.display = "none";
+  }
+
+  async function refreshUser() {
+    try {
+      const result = await window.khunnanoLogin.getUser();
+      const user = result && result.data && result.data.user;
+      if (user) {
+        btn.textContent = "👤 บัญชีของฉัน";
+        signIn.style.display = "none";
+        signUp.style.display = "none";
+        signOut.style.display = "block";
+        userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
+      } else {
+        btn.textContent = "🔐 เข้าสู่ระบบ / สมัครสมาชิก";
+        signIn.style.display = "block";
+        signUp.style.display = "block";
+        signOut.style.display = "none";
+        userInfo.textContent = "";
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  btn.addEventListener("click", openAuth);
+  closeBtn.addEventListener("click", closeAuth);
+  overlay.addEventListener("click", function (event) {
+    if (event.target === overlay) closeAuth();
+  });
+
+  signIn.addEventListener("click", async function () {
+    const e = email.value.trim();
+    const p = password.value;
+    if (!e || !p) { status.textContent = "กรุณากรอกอีเมลและรหัสผ่าน"; return; }
+    status.textContent = "กำลังเข้าสู่ระบบ...";
+    const result = await window.khunnanoLogin.signIn(e, p);
+    if (result.error) {
+      status.textContent = "เข้าสู่ระบบไม่สำเร็จ: " + result.error.message;
+      return;
+    }
+    status.textContent = "เข้าสู่ระบบสำเร็จ ✅";
+    await refreshUser();
+  });
+
+  signUp.addEventListener("click", async function () {
+    const e = email.value.trim();
+    const p = password.value;
+    if (!e || !p) { status.textContent = "กรุณากรอกอีเมลและรหัสผ่าน"; return; }
+    status.textContent = "กำลังสมัครสมาชิก...";
+    const result = await window.khunnanoLogin.signUp(e, p);
+    if (result.error) {
+      status.textContent = "สมัครสมาชิกไม่สำเร็จ: " + result.error.message;
+      return;
+    }
+    status.textContent = result.data && result.data.session
+      ? "สมัครสมาชิกสำเร็จและเข้าสู่ระบบแล้ว ✅"
+      : "สมัครสำเร็จ กรุณาตรวจอีเมลเพื่อยืนยันบัญชี 📧";
+    await refreshUser();
+  });
+
+  signOut.addEventListener("click", async function () {
+    status.textContent = "กำลังออกจากระบบ...";
+    const result = await window.khunnanoLogin.signOut();
+    if (result.error) {
+      status.textContent = "ออกจากระบบไม่สำเร็จ: " + result.error.message;
+      return;
+    }
+    status.textContent = "ออกจากระบบแล้ว";
+    await refreshUser();
+  });
+
+  refreshUser();
+})();
+</script>
+<script>
 
 
 (function () {
