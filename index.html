@@ -1475,19 +1475,79 @@ window.enterSite = function () {
  function showToast(msg){let t=document.getElementById('cartToast');if(!t){t=document.createElement('div');t.id='cartToast';t.style.cssText='position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:99999;background:#222;color:#fff;padding:11px 15px;border-radius:14px;font-size:12px;font-weight:700;max-width:88%;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,.22)';document.body.appendChild(t)}t.textContent=msg;clearTimeout(window.__cartToast);window.__cartToast=setTimeout(()=>t.remove(),2200)}
  document.addEventListener('DOMContentLoaded',function(){
    updateCount();
-   const overlay=document.getElementById('cartOverlay');
+
+   function findCard(el){
+     return el && (el.closest('.poster-card') || el.closest('[data-name]'));
+   }
+
    document.addEventListener('click',function(e){
-     const addBtn=e.target.closest&&e.target.closest('.cart-add-btn');
-     if(addBtn){e.preventDefault();e.stopPropagation();add(addBtn.closest('.poster-card'));return;}
-     const cartBtn=e.target.closest&&e.target.closest('#cartBtn');
-     if(cartBtn){e.preventDefault();render();overlay?.classList.add('open');overlay?.setAttribute('aria-hidden','false');return;}
-     const close=e.target.closest&&e.target.closest('#closeCart');
-     if(close){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
-     if(e.target===overlay){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
-     const ctl=e.target.closest&&e.target.closest('[data-act]');
-     if(ctl&&ctl.closest('#cartList')){const c=getCart(),i=Number(ctl.dataset.i),a=ctl.dataset.act;if(!c[i])return;if(a==='plus')c[i].qty=(c[i].qty||1)+1;if(a==='minus'){c[i].qty=(c[i].qty||1)-1;if(c[i].qty<1)c.splice(i,1)}if(a==='remove')c.splice(i,1);saveCart(c);updateCount();render();return;}
-     const checkout=e.target.closest&&e.target.closest('#cartCheckout');
-     if(checkout){const c=getCart();if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}let msg='คำสั่งซื้อจากเว็บไซต์\n';c.forEach((x,i)=>{msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}}let msg='คำสั่งซื้อจากเว็บไซต์\n';c.forEach((x,i)=>{msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}
+     const target=e.target && e.target.closest ? e.target.closest('button,a,[role="button"],.cart-add-btn') : null;
+     if(!target)return;
+
+     const addBtn=target.classList.contains('cart-add-btn') ? target : target.closest('.cart-add-btn');
+     if(addBtn){
+       e.preventDefault();
+       e.stopPropagation();
+       const card=findCard(addBtn);
+       if(card){ add(card); }
+       return;
+     }
+
+     const cartBtn=target.closest('#cartBtn');
+     if(cartBtn){
+       e.preventDefault();
+       e.stopPropagation();
+       const overlay=document.getElementById('cartOverlay');
+       render();
+       if(overlay){
+         overlay.classList.add('open');
+         overlay.setAttribute('aria-hidden','false');
+       }
+       return;
+     }
+
+     const closeBtn=target.closest('#closeCart');
+     if(closeBtn){
+       e.preventDefault();
+       document.getElementById('cartOverlay')?.classList.remove('open');
+       document.getElementById('cartOverlay')?.setAttribute('aria-hidden','true');
+       return;
+     }
+
+     const overlay=target.closest('#cartOverlay');
+     if(overlay && target===overlay){
+       overlay.classList.remove('open');
+       overlay.setAttribute('aria-hidden','true');
+       return;
+     }
+
+     const minus=target.closest('.cart-qty-btn[data-action="minus"]');
+     if(minus){
+       e.preventDefault();
+       changeQty(Number(minus.dataset.index),-1);
+       return;
+     }
+
+     const plus=target.closest('.cart-qty-btn[data-action="plus"]');
+     if(plus){
+       e.preventDefault();
+       changeQty(Number(plus.dataset.index),1);
+       return;
+     }
+
+     const remove=target.closest('.cart-remove');
+     if(remove){
+       e.preventDefault();
+       removeItem(Number(remove.dataset.index));
+       return;
+     }
+
+     const checkout=target.closest('#cartCheckout');
+     if(checkout){
+       e.preventDefault();
+       checkoutOrder();
+       return;
+     }
    },true);
  });
 })();
