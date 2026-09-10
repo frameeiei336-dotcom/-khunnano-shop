@@ -845,8 +845,6 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <input id="khunnanoAvatarFile" type="file" accept="image/*" style="display:none;">
 <button id="khunnanoAvatarPick" type="button">🖼️ เลือกรูปจากคลังภาพ</button>
 <div id="khunnanoAvatarPhotoStatus"></div>
-<label class="khunnano-avatar-upload" for="khunnanoAvatarFile">🖼️ เลือกรูปจากคลังภาพ</label>
-<input id="khunnanoAvatarFile" type="file" accept="image/*" style="display:none;" />
 <label class="khunnano-profile-label" for="khunnanoProfileName">ชื่อที่แสดง</label>
 <input class="khunnano-profile-input" id="khunnanoProfileName" maxlength="40" placeholder="เช่น Frame" type="text" />
 <button id="khunnanoProfileSave" type="button">บันทึกโปรไฟล์</button>
@@ -1129,7 +1127,7 @@ document.addEventListener("click",e=>{if(!e.target.closest(".khunnano-member-too
 closeBtn.addEventListener("click",closeProfile);overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfile()});
 pickBtn.addEventListener("click",()=>fileInput.click());
 fileInput.addEventListener("change",()=>{let f=fileInput.files&&fileInput.files[0];if(!f)return;if(!f.type.startsWith("image/")){photoStatus.textContent="กรุณาเลือกไฟล์รูปภาพครับ";return}if(f.size>5*1024*1024){photoStatus.textContent="รูปใหญ่เกินไปครับ (สูงสุด 5 MB)";return}let r=new FileReader();r.onload=()=>{let p=load();p.avatar=r.result;localStorage.setItem(key,JSON.stringify(p));render(p.avatar);photoStatus.textContent="เลือกรูปแล้ว ✓"};r.readAsDataURL(f)});
-saveBtn.addEventListener("click",()=>{let n=nameInput.value.trim();if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}let p=load();p.name=n;localStorage.setItem(key,JSON.stringify(p));apply();status.textContent="บันทึกโปรไฟล์แล้ว ✓";setTimeout(closeProfile,500)});
+saveBtn.addEventListener("click",()=>{let n=nameInput.value.trim();if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}let p=load();p.name=n;localStorage.setItem(key,JSON.stringify(p));apply();let mn=document.getElementById("khunnanoMenuName");if(mn)mn.textContent=n;status.textContent="บันทึกโปรไฟล์แล้ว ✓";setTimeout(closeProfile,500)});
 apply();
 })();
 </script>
@@ -1176,7 +1174,8 @@ apply();
         signIn.style.display = "none"; signUp.style.display = "none"; signOut.style.display = "block";
         userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (topLogin) topLogin.style.display = "none";
-        if (menuName) menuName.textContent = "สมาชิก STICKER KHUNNANO";
+        const savedProfile = (function(){ try { return JSON.parse(localStorage.getItem("khunnano-profile-v2") || "{}"); } catch(e) { return {}; } })();
+        if (menuName) menuName.textContent = savedProfile.name || "สมาชิก STICKER KHUNNANO";
         if (menuEmail) menuEmail.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (menuLogin) menuLogin.style.display = "none";
         if (menuProfile) menuProfile.style.display = "block";
@@ -1360,9 +1359,20 @@ apply();
             clearTimeout(window.__khunnanoToastTimer);
             window.__khunnanoToastTimer = setTimeout(() => toast.remove(), 2600);
         }
+        async function requireLogin() {
+            try {
+                const result = await window.khunnanoLogin.getUser();
+                const user = result && result.data && result.data.user;
+                if (user) return true;
+            } catch (err) {}
+            const loginBtn = document.getElementById('khunnanoTopLogin') || document.getElementById('khunnanoLoginBtn');
+            if (loginBtn) loginBtn.click();
+            return false;
+        }
         document.addEventListener('click', async function (e) {
             const link = e.target.closest && e.target.closest('a.poster-btn');
             if (!link || !/สั่งซื้อ/i.test((link.textContent || '').trim())) return;
+            if (!(await requireLogin())) { e.preventDefault(); e.stopPropagation(); return; }
             e.preventDefault();
             e.stopPropagation();
             const card = link.closest('.poster-card');
@@ -1767,9 +1777,25 @@ window.enterSite = function () {
    const overlay=document.getElementById('cartOverlay');
    document.addEventListener('click',function(e){
      const addBtn=e.target.closest&&e.target.closest('.cart-add-btn');
-     if(addBtn){e.preventDefault();e.stopPropagation();add(addBtn.closest('.poster-card'));return;}
+     if(addBtn){
+       e.preventDefault();e.stopPropagation();
+       window.khunnanoLogin.getUser().then(function(result){
+         const user=result&&result.data&&result.data.user;
+         if(!user){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); return; }
+         add(addBtn.closest('.poster-card'));
+       }).catch(function(){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); });
+       return;
+     }
      const cartBtn=e.target.closest&&e.target.closest('#cartBtn');
-     if(cartBtn){e.preventDefault();render();overlay?.classList.add('open');overlay?.setAttribute('aria-hidden','false');return;}
+     if(cartBtn){
+       e.preventDefault();e.stopPropagation();
+       window.khunnanoLogin.getUser().then(function(result){
+         const user=result&&result.data&&result.data.user;
+         if(!user){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); return; }
+         render();overlay?.classList.add('open');overlay?.setAttribute('aria-hidden','false');
+       }).catch(function(){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); });
+       return;
+     }
      const close=e.target.closest&&e.target.closest('#closeCart');
      if(close){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
      if(e.target===overlay){overlay?.classList.remove('open');overlay?.setAttribute('aria-hidden','true');return;}
@@ -1777,6 +1803,18 @@ window.enterSite = function () {
      if(ctl&&ctl.closest('#cartList')){const c=getCart(),i=Number(ctl.dataset.i),a=ctl.dataset.act;if(!c[i])return;if(a==='plus')c[i].qty=(c[i].qty||1)+1;if(a==='minus'){c[i].qty=(c[i].qty||1)-1;if(c[i].qty<1)c.splice(i,1)}if(a==='remove')c.splice(i,1);saveCart(c);updateCount();render();return;}
      const checkout=e.target.closest&&e.target.closest('#cartCheckout');
      if(checkout){
+       e.preventDefault();e.stopPropagation();
+       window.khunnanoLogin.getUser().then(function(result){
+         const user=result&&result.data&&result.data.user;
+         if(!user){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); return; }
+         const c=getCart();
+         if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}
+         let msg='คำสั่งซื้อจากเว็บไซต์\n';
+         c.forEach((x,i)=>{ msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'; });
+         copy(msg).then(ok=>{ showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE'); setTimeout(()=>{window.location.href=LINE},180); });
+       }).catch(function(){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); });
+       return;
+       /* legacy checkout body intentionally bypassed */
        const c=getCart();
        if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}
        let msg='คำสั่งซื้อจากเว็บไซต์\\n';
