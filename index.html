@@ -434,6 +434,23 @@
         .footer-payment p { margin-bottom: 4px; }
 
 
+
+        /* ===== Khunnano Login UI (separate from cart/customer center) ===== */
+        .khunnano-login-home { padding: 0 20px 14px; }
+        #khunnanoLoginBtn { width:100%; border:1px solid rgba(138,75,175,.16); cursor:pointer; padding:11px 14px; border-radius:14px; background:var(--tab-bg); color:var(--tab-color); font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+        #khunnanoLoginBtn:active { transform:scale(.985); }
+        .khunnano-auth-overlay { position:fixed; inset:0; z-index:5000; display:none; align-items:flex-end; justify-content:center; background:rgba(30,20,45,.45); }
+        .khunnano-auth-overlay.open { display:flex; }
+        .khunnano-auth-box { width:min(430px,100%); background:var(--screen-bg); color:var(--text-main); border-radius:24px 24px 0 0; padding:18px; box-sizing:border-box; box-shadow:0 -10px 35px rgba(0,0,0,.2); }
+        .khunnano-auth-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+        .khunnano-auth-title { font-size:17px; font-weight:800; }
+        #khunnanoAuthClose { border:0; width:34px; height:34px; border-radius:50%; background:var(--tab-bg); color:var(--tab-color); font-size:22px; cursor:pointer; }
+        .khunnano-auth-input { width:100%; box-sizing:border-box; margin-top:9px; border:1px solid #ddd5ee; border-radius:11px; padding:11px; font-family:inherit; font-size:12px; background:var(--card-bg); color:var(--text-main); }
+        .khunnano-auth-action { width:100%; margin-top:10px; border:0; border-radius:12px; padding:11px; background:#8a4baf; color:#fff; font-weight:800; font-size:12px; cursor:pointer; }
+        .khunnano-auth-secondary { width:100%; margin-top:8px; border:1px solid var(--card-border); border-radius:12px; padding:10px; background:var(--tab-bg); color:var(--tab-color); font-weight:800; font-size:12px; cursor:pointer; }
+        #khunnanoAuthStatus { min-height:18px; margin-top:9px; font-size:11px; line-height:1.5; color:var(--text-sub); }
+        #khunnanoUserInfo { display:none; margin-top:9px; padding:10px; border:1px solid var(--card-border); border-radius:12px; background:var(--card-bg); font-size:11px; line-height:1.5; }
+
         /* My Order History - local only, no status/admin */
         .my-orders-wrap { padding: 0 20px 16px; }
         #myOrdersBtn {
@@ -758,6 +775,23 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <div class="customer-center-home">
 <button id="myReviewBtn" type="button">⭐ รีวิวลูกค้า</button>
 </div>
+
+<div class="khunnano-login-home">
+<button id="khunnanoLoginBtn" type="button">🔐 เข้าสู่ระบบ / สมัครสมาชิก</button>
+</div>
+<div aria-hidden="true" class="khunnano-auth-overlay" id="khunnanoAuthOverlay">
+<div aria-modal="true" class="khunnano-auth-box" role="dialog">
+<div class="khunnano-auth-head"><div class="khunnano-auth-title">🔐 บัญชี STICKER KHUNNANO</div><button aria-label="ปิด" id="khunnanoAuthClose" type="button">×</button></div>
+<input class="khunnano-auth-input" id="khunnanoAuthEmail" type="email" autocomplete="email" placeholder="อีเมล" />
+<input class="khunnano-auth-input" id="khunnanoAuthPassword" type="password" autocomplete="current-password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" />
+<button class="khunnano-auth-action" id="khunnanoSignIn" type="button">เข้าสู่ระบบ</button>
+<button class="khunnano-auth-secondary" id="khunnanoSignUp" type="button">สมัครสมาชิกใหม่</button>
+<button class="khunnano-auth-secondary" id="khunnanoSignOut" type="button" style="display:none;">ออกจากระบบ</button>
+<div id="khunnanoAuthStatus"></div>
+<div id="khunnanoUserInfo"></div>
+</div>
+</div>
+
 <div aria-label="ยอดเข้าชมเว็บไซต์" class="site-view-counter">👀 ยอดเข้าชมเว็บไซต์ <span class="view-number" id="siteViewCount">0</span> ครั้ง</div>
 <div class="category-tabs" id="categoryTabs">
 <a class="tab-item active" data-category-link="all" href="#all">ทั้งหมด</a>
