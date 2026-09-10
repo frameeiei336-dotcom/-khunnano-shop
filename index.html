@@ -1487,11 +1487,7 @@ window.enterSite = function () {
      const ctl=e.target.closest&&e.target.closest('[data-act]');
      if(ctl&&ctl.closest('#cartList')){const c=getCart(),i=Number(ctl.dataset.i),a=ctl.dataset.act;if(!c[i])return;if(a==='plus')c[i].qty=(c[i].qty||1)+1;if(a==='minus'){c[i].qty=(c[i].qty||1)-1;if(c[i].qty<1)c.splice(i,1)}if(a==='remove')c.splice(i,1);saveCart(c);updateCount();render();return;}
      const checkout=e.target.closest&&e.target.closest('#cartCheckout');
-     if(checkout){const c=getCart();if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}let msg='คำสั่งซื้อจากเว็บไซต์
-';c.forEach((x,i)=>{msg+='
-'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'
-🔗 '+x.link:'')+'
-'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}
+     if(checkout){const c=getCart();if(!c.length){showToast('🛒 ยังไม่มีสินค้าในตะกร้าครับ');return;}let msg='คำสั่งซื้อจากเว็บไซต์\n';c.forEach((x,i)=>{msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}}let msg='คำสั่งซื้อจากเว็บไซต์\n';c.forEach((x,i)=>{msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'});copy(msg).then(ok=>{showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE');setTimeout(()=>{window.location.href=LINE},180)});return;}
    },true);
  });
 })();
