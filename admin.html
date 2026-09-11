@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel | STICKER KHUNNANO</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f3fa;color:#302638}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
+.card{background:#fff;border:1px solid #eadff0;border-radius:20px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+h1{margin:0 0 6px;font-size:24px}.sub{color:#75677e;font-size:13px;margin-bottom:20px}.status{padding:12px;border-radius:12px;background:#f4edf8;margin-bottom:16px;font-size:13px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.item{border:1px solid #eadff0;border-radius:14px;padding:16px}.item b{display:block;margin-bottom:5px}.item span{font-size:12px;color:#75677e}button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;margin-right:8px}.back{background:#eee5f3}.logout{background:#8a4baf;color:#fff}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<h1>🛠️ แผงควบคุมแอดมิน</h1>
+<div class="sub">STICKER KHUNNANO</div>
+<div id="status" class="status">กำลังตรวจสอบสิทธิ์...</div>
+<div id="panel" style="display:none">
+<div class="grid">
+<div class="item"><b>🛍️ สินค้า</b><span>จัดการสินค้าและข้อมูลสินค้า</span></div>
+<div class="item"><b>🔥 โปรโมชั่น</b><span>จัดการโปรโมชั่นของร้าน</span></div>
+<div class="item"><b>📦 ออเดอร์</b><span>ดูและจัดการรายการสั่งซื้อ</span></div>
+<div class="item"><b>⭐ รีวิว</b><span>ตรวจสอบและจัดการรีวิว</span></div>
+</div>
+<div style="margin-top:18px"><button class="back" onclick="location.href='/'">← กลับหน้าร้าน</button><button class="logout" id="logout">🚪 ออกจากระบบ</button></div>
+</div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/login.js"></script>
+<script>
+(async function(){
+  const status=document.getElementById('status'),panel=document.getElementById('panel');
+  try{
+    const supabase=await window.khunnanoAuth.ready;
+    const {data:{user},error:userError}=await supabase.auth.getUser();
+    if(userError||!user){ location.href='/?login=required'; return; }
+    const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
+    if(roleError||!roleRow||roleRow.role!=='admin'){
+      status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';
+      setTimeout(()=>location.href='/',1200);
+      return;
+    }
+    status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');
+    panel.style.display='block';
+    document.getElementById('logout').addEventListener('click',async()=>{
+      await window.khunnanoLogin.signOut(); location.href='/';
+    });
+  }catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
+})();
+</script>
+</body>
+</html>
