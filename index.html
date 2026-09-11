@@ -1115,6 +1115,43 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 (function(){
   function esc(v){return String(v ?? '').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
   function money(v){return Number(v||0).toLocaleString('th-TH');}
+  async function copyDbOrder(card){
+    try{
+      const result=await window.khunnanoLogin.getUser();
+      const user=result && result.data && result.data.user;
+      if(!user){
+        const loginBtn=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn');
+        if(loginBtn) loginBtn.click();
+        return;
+      }
+    }catch(e){ return; }
+    const name=card.getAttribute('data-product-name')||'';
+    const coins=Number(card.getAttribute('data-coins')||0).toLocaleString('th-TH');
+    const price=Number(card.getAttribute('data-price')||0).toLocaleString('th-TH');
+    const link=card.getAttribute('data-product-link')||'';
+    const text='คำสั่งซื้อจากเว็บไซต์\nสินค้า: '+name+'\n🪙 '+coins+' เหรียญ\n\n'+price+' บาท\n\n🔗 ดูธีม\n💬 สั่งซื้อ\n🛒 เพิ่มลงตะกร้า\n💰 '+price+' บาท'+(link?'\n🔗 '+link:'');
+    let copied=false;
+    try{ if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); copied=true; } }catch(e){}
+    if(!copied){ try{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); copied=document.execCommand('copy'); ta.remove(); }catch(e){} }
+    let toast=document.getElementById('orderCopyToast');
+    if(!toast){ toast=document.createElement('div'); toast.id='orderCopyToast'; toast.style.cssText='position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:99999;background:#222;color:#fff;padding:11px 15px;border-radius:14px;font-size:12px;font-weight:700;max-width:88%;text-align:center;'; document.body.appendChild(toast); }
+    toast.textContent=copied?'✅ คัดลอกข้อมูลคำสั่งซื้อแล้ว กำลังเปิด LINE ให้ส่งร้านครับ':'📋 คัดลอกข้อมูลไม่สำเร็จ กำลังเปิด LINE ให้ครับ';
+    clearTimeout(window.__khunnanoToastTimer); window.__khunnanoToastTimer=setTimeout(()=>toast.remove(),2600);
+    setTimeout(()=>{ const a=card.querySelector('a[data-db-order]'); if(a) window.location.href=a.href; },180);
+  }
+  function openDbPreview(card){
+    const img=card.querySelector('.poster-img-box img[data-example-list]');
+    if(!img) return;
+    const overlay=document.getElementById('themeExampleOverlay');
+    const gallery=document.getElementById('themeExampleGallery');
+    const title=document.getElementById('themeExampleTitle');
+    if(!overlay||!gallery||!title)return;
+    const list=(img.getAttribute('data-example-list')||'').split('|').filter(Boolean);
+    if(!list.length)return;
+    gallery.innerHTML=''; title.textContent='ตัวอย่างธีม: '+(img.alt||'');
+    list.forEach((src,i)=>{const item=document.createElement('div');item.className='theme-example-item';const label=document.createElement('div');label.className='theme-example-number';label.textContent='ตัวอย่างที่ '+(i+1);const pic=document.createElement('img');pic.src=src;pic.alt='ตัวอย่าง '+(img.alt||'')+' '+(i+1);pic.loading='eager';item.appendChild(label);item.appendChild(pic);gallery.appendChild(item);});
+    overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
+  }
   function makeCard(p){
     const card=document.createElement('div');
     card.className='poster-card';
@@ -1123,6 +1160,9 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
     const orderLink=p.order_url||'https://line.me/R/ti/p/@635plmxg';
     const productLink=p.product_url||orderLink;
     card.setAttribute('data-product-link',productLink);
+    card.setAttribute('data-product-name',p.name||'');
+    card.setAttribute('data-coins',String(p.coins??0));
+    card.setAttribute('data-price',String(p.price??0));
     const image=p.image_url||'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="100%" height="100%" fill="#eee5f3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="28" fill="#75677e">STICKER KHUNNANO</text></svg>');
     const previews=Array.isArray(p.preview_images)?p.preview_images.filter(Boolean):[];
     const previewAttr=previews.length ? ' data-example-list="'+esc(previews.join('|'))+'"' : '';
@@ -1139,6 +1179,17 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
           '<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button>'+
         '</div>'+
       '</div>';
+    const dbOrder=card.querySelector('a[data-db-order]');
+    if(dbOrder){
+      dbOrder.addEventListener('click',async function(e){
+        e.preventDefault(); e.stopImmediatePropagation();
+        await copyDbOrder(card);
+      },true);
+    }
+    const dbImg=card.querySelector('.poster-img-box img[data-example-list]');
+    if(dbImg){
+      dbImg.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openDbPreview(card);},true);
+    }
     return card;
   }
   async function loadDbProducts(){
@@ -1519,12 +1570,24 @@ apply();
             e.stopPropagation();
             const card = link.closest('.poster-card');
             addOrder(card);
+            const isDbProduct = link.getAttribute('data-db-order') === 'true';
             const productLink = card && card.getAttribute('data-product-link');
-            const productName = card && card.querySelector('.poster-name') ? card.querySelector('.poster-name').textContent.trim() : '';
-            if (productLink) {
+            const productName = isDbProduct
+                ? (card.getAttribute('data-product-name') || '')
+                : (card && card.querySelector('.poster-name') ? card.querySelector('.poster-name').textContent.trim() : '');
+            if (isDbProduct) {
+                const coins = card.getAttribute('data-coins') || '0';
+                const price = card.getAttribute('data-price') || '0';
+                const copyMessage = 'คำสั่งซื้อจากเว็บไซต์\nสินค้า: ' + productName
+                    + '\n🪙 ' + Number(coins || 0).toLocaleString('th-TH') + ' เหรียญ'
+                    + '\n💰 ' + Number(price || 0).toLocaleString('th-TH') + ' บาท'
+                    + (productLink ? '\n🔗 ' + productLink : '');
+                const copied = await copyText(copyMessage);
+                showOrderToast(copied ? '✅ คัดลอกข้อมูลคำสั่งซื้อแล้ว กำลังเปิด LINE ให้ส่งร้านครับ' : '📋 คัดลอกข้อมูลไม่สำเร็จ กำลังเปิด LINE ให้ครับ');
+            } else if (productLink) {
                 const priceEl = card && card.querySelector('.poster-price');
                 const priceText = priceEl ? priceEl.textContent.trim() : '';
-                const coinEl = card && Array.from(card.querySelectorAll('div,span')).find(el => /เหรียญ/.test((el.textContent || '').trim()) && /\d/.test((el.textContent || '').trim()));
+                const coinEl = card && Array.from(card.querySelectorAll('div,span')).find(el => /เหรียญ/.test((el.textContent || '').trim()) && /\d/.test((el.textContent || '').trim()) && (el.children.length === 0 || el.classList.contains('poster-name') === false));
                 const coinText = coinEl ? coinEl.textContent.trim() : '';
                 const copyMessage = 'คำสั่งซื้อจากเว็บไซต์\nสินค้า: ' + productName
                     + (coinText ? '\n🪙 ' + coinText.replace(/^🪙\s*/, '').replace(/^💎\s*/, '') : '')
