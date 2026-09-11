@@ -6,48 +6,100 @@
 <title>Admin Panel | STICKER KHUNNANO</title>
 <style>
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f3fa;color:#302638}
-.wrap{max-width:900px;margin:0 auto;padding:24px}
-.card{background:#fff;border:1px solid #eadff0;border-radius:20px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-h1{margin:0 0 6px;font-size:24px}.sub{color:#75677e;font-size:13px;margin-bottom:20px}.status{padding:12px;border-radius:12px;background:#f4edf8;margin-bottom:16px;font-size:13px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.item{border:1px solid #eadff0;border-radius:14px;padding:16px}.item b{display:block;margin-bottom:5px}.item span{font-size:12px;color:#75677e}button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700;margin-right:8px}.back{background:#eee5f3}.logout{background:#8a4baf;color:#fff}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}.card{background:#fff;border:1px solid #eadff0;border-radius:20px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+h1{margin:0 0 6px;font-size:24px}.sub{color:#75677e;font-size:13px;margin-bottom:18px}.status{padding:12px;border-radius:12px;background:#f4edf8;margin-bottom:16px;font-size:13px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700}
+.primary{background:#8a4baf;color:#fff}.back{background:#eee5f3}.logout{background:#8a4baf;color:#fff}.danger{background:#f8e2e2;color:#9b3030}
+.table-wrap{overflow:auto;border:1px solid #eadff0;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13px;vertical-align:middle}th{background:#faf7fc}
+.thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#f1eaf5;display:block}.actions{white-space:nowrap}.actions button{margin-right:5px;padding:8px 10px;font-size:12px}
+.empty{text-align:center;padding:30px;color:#75677e}.overlay{position:fixed;inset:0;background:rgba(20,12,25,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.overlay.open{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h2{margin:0 0 16px;font-size:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;font-weight:700}
+.field input,.field select{width:100%;box-sizing:border-box;border:1px solid #ddd1e5;border-radius:10px;padding:11px;font:inherit;background:#fff}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}#formStatus{font-size:12px;color:#9b3030;margin-top:10px;min-height:18px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
 </style>
 </head>
 <body>
 <div class="wrap"><div class="card">
-<h1>🛠️ แผงควบคุมแอดมิน</h1>
-<div class="sub">STICKER KHUNNANO</div>
+<h1>🛠️ แผงควบคุมแอดมิน</h1><div class="sub">STICKER KHUNNANO</div>
 <div id="status" class="status">กำลังตรวจสอบสิทธิ์...</div>
 <div id="panel" style="display:none">
-<div class="grid">
-<div class="item"><b>🛍️ สินค้า</b><span>จัดการสินค้าและข้อมูลสินค้า</span></div>
-<div class="item"><b>🔥 โปรโมชั่น</b><span>จัดการโปรโมชั่นของร้าน</span></div>
-<div class="item"><b>📦 ออเดอร์</b><span>ดูและจัดการรายการสั่งซื้อ</span></div>
-<div class="item"><b>⭐ รีวิว</b><span>ตรวจสอบและจัดการรีวิว</span></div>
+<div class="toolbar">
+<button class="primary" id="addProduct">＋ เพิ่มสินค้า</button>
+<button class="back" onclick="location.href='/'">← กลับหน้าร้าน</button>
+<button class="logout" id="logout">🚪 ออกจากระบบ</button>
 </div>
-<div style="margin-top:18px"><button class="back" onclick="location.href='/'">← กลับหน้าร้าน</button><button class="logout" id="logout">🚪 ออกจากระบบ</button></div>
+<div class="table-wrap">
+<table><thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>หมวด</th><th>ราคา</th><th>เหรียญ</th><th>จัดการ</th></tr></thead>
+<tbody id="productRows"></tbody></table>
+<div id="empty" class="empty" style="display:none">ยังไม่มีสินค้าในระบบ</div>
+</div>
 </div>
 </div></div>
+
+<div class="overlay" id="productOverlay" aria-hidden="true">
+<div class="modal">
+<h2 id="formTitle">เพิ่มสินค้า</h2>
+<form id="productForm">
+<input type="hidden" id="productId">
+<div class="form-grid">
+<div class="field full"><label for="productName">ชื่อสินค้า *</label><input id="productName" required maxlength="200"></div>
+<div class="field"><label for="productCategory">หมวดสินค้า</label>
+<select id="productCategory"><option value="">เลือกหมวด</option><option value="sticker">sticker</option><option value="theme">theme</option><option value="emoji">emoji</option><option value="melody">melody</option></select></div>
+<div class="field"><label for="productPrice">ราคา (บาท)</label><input id="productPrice" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label for="productCoins">ราคาเหรียญ</label><input id="productCoins" type="number" min="0" step="1" value="0"></div>
+<div class="field full"><label for="productImage">ลิงก์รูปภาพ</label><input id="productImage" type="url" placeholder="https://..."></div>
+<div class="field full"><label for="productUrl">ลิงก์ดูธีม/สินค้า</label><input id="productUrl" type="url" placeholder="https://..."></div>
+<div class="field full"><label for="orderUrl">ลิงก์สั่งซื้อ</label><input id="orderUrl" type="url" placeholder="https://..."></div>
+</div>
+<div id="formStatus"></div>
+<div class="modal-actions"><button type="button" class="back" id="cancelForm">ยกเลิก</button><button type="submit" class="primary" id="saveProduct">บันทึกสินค้า</button></div>
+</form>
+</div></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/login.js"></script>
+<script src="/js/auth.js"></script><script src="/js/login.js"></script>
 <script>
 (async function(){
-  const status=document.getElementById('status'),panel=document.getElementById('panel');
-  try{
-    const supabase=await window.khunnanoAuth.ready;
-    const {data:{user},error:userError}=await supabase.auth.getUser();
-    if(userError||!user){ location.href='/?login=required'; return; }
-    const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
-    if(roleError||!roleRow||roleRow.role!=='admin'){
-      status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';
-      setTimeout(()=>location.href='/',1200);
-      return;
-    }
-    status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');
-    panel.style.display='block';
-    document.getElementById('logout').addEventListener('click',async()=>{
-      await window.khunnanoLogin.signOut(); location.href='/';
-    });
-  }catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
+const status=document.getElementById('status'),panel=document.getElementById('panel'),rows=document.getElementById('productRows'),empty=document.getElementById('empty');
+const overlay=document.getElementById('productOverlay'),form=document.getElementById('productForm'),formTitle=document.getElementById('formTitle'),formStatus=document.getElementById('formStatus'),saveProduct=document.getElementById('saveProduct');
+let supabase=null,products=[];
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);}
+function openForm(p){form.reset();formStatus.textContent='';document.getElementById('productId').value=p?.id||'';document.getElementById('productName').value=p?.name||'';document.getElementById('productCategory').value=p?.category||'';document.getElementById('productPrice').value=p?.price??0;document.getElementById('productCoins').value=p?.coins??0;document.getElementById('productImage').value=p?.image_url||'';document.getElementById('productUrl').value=p?.product_url||'';document.getElementById('orderUrl').value=p?.order_url||'';formTitle.textContent=p?'แก้ไขสินค้า':'เพิ่มสินค้า';overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');}
+function closeForm(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+async function loadProducts(){
+rows.innerHTML='';empty.style.display='none';
+const {data,error}=await supabase.from('products').select('id,name,price,coins,image_url,category,product_url,order_url,created_at').order('id',{ascending:false});
+if(error){console.error(error);status.textContent='โหลดสินค้าไม่สำเร็จ: '+error.message;return;}
+products=data||[];if(!products.length){empty.style.display='block';return;}
+rows.innerHTML=products.map(p=>{const img=p.image_url?'<img class="thumb" src="'+esc(p.image_url)+'" alt="">':'<div class="thumb"></div>';
+return '<tr><td>'+img+'</td><td><b>'+esc(p.name)+'</b></td><td>'+esc(p.category||'-')+'</td><td>'+Number(p.price||0).toLocaleString('th-TH')+' บาท</td><td>🪙 '+Number(p.coins||0).toLocaleString('th-TH')+'</td><td class="actions"><button class="back" data-edit="'+esc(p.id)+'">แก้ไข</button><button class="danger" data-delete="'+esc(p.id)+'">ลบ</button></td></tr>';}).join('');
+}
+rows.addEventListener('click',async e=>{
+const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');
+if(edit){const p=products.find(x=>String(x.id)===String(edit.dataset.edit));if(p)openForm(p);}
+if(del){const p=products.find(x=>String(x.id)===String(del.dataset.delete));if(!p)return;if(!confirm('ต้องการลบสินค้า "'+p.name+'" ใช่ไหม?'))return;const {error}=await supabase.from('products').delete().eq('id',p.id);if(error){alert('ลบไม่สำเร็จ: '+error.message);return;}await loadProducts();}
+});
+form.addEventListener('submit',async e=>{
+e.preventDefault();formStatus.textContent='';saveProduct.disabled=true;saveProduct.textContent='กำลังบันทึก...';
+const id=document.getElementById('productId').value;
+const payload={name:document.getElementById('productName').value.trim(),category:document.getElementById('productCategory').value,price:Number(document.getElementById('productPrice').value||0),coins:Number(document.getElementById('productCoins').value||0),image_url:document.getElementById('productImage').value.trim()||null,product_url:document.getElementById('productUrl').value.trim()||null,order_url:document.getElementById('orderUrl').value.trim()||null};
+const result=id?await supabase.from('products').update(payload).eq('id',id):await supabase.from('products').insert(payload);
+if(result.error){console.error(result.error);formStatus.textContent='บันทึกไม่สำเร็จ: '+result.error.message;saveProduct.disabled=false;saveProduct.textContent='บันทึกสินค้า';return;}
+closeForm();await loadProducts();saveProduct.disabled=false;saveProduct.textContent='บันทึกสินค้า';
+});
+document.getElementById('addProduct').addEventListener('click',()=>openForm(null));document.getElementById('cancelForm').addEventListener('click',closeForm);overlay.addEventListener('click',e=>{if(e.target===overlay)closeForm();});
+try{
+supabase=await window.khunnanoAuth.ready;
+const {data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user){location.href='/?login=required';return;}
+const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
+if(roleError||!roleRow||roleRow.role!=='admin'){status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';setTimeout(()=>location.href='/',1200);return;}
+status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadProducts();
+document.getElementById('logout').addEventListener('click',async()=>{await window.khunnanoLogin.signOut();location.href='/';});
+}catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
 })();
 </script>
 </body>
