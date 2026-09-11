@@ -1113,21 +1113,68 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 (function(){
 const topLogin=document.getElementById("khunnanoTopLogin"), menuBtn=document.getElementById("khunnanoMenuBtn"),menu=document.getElementById("khunnanoMemberMenu"),avatarBtn=document.getElementById("khunnanoAvatarBtn"),profileBtn=document.getElementById("khunnanoMenuProfile"),overlay=document.getElementById("khunnanoProfileOverlay"),closeBtn=document.getElementById("khunnanoProfileClose"),preview=document.getElementById("khunnanoProfileAvatarPreview"),nameInput=document.getElementById("khunnanoProfileName"),saveBtn=document.getElementById("khunnanoProfileSave"),status=document.getElementById("khunnanoProfileStatus"),fileInput=document.getElementById("khunnanoAvatarFile"),pickBtn=document.getElementById("khunnanoAvatarPick"),photoStatus=document.getElementById("khunnanoAvatarPhotoStatus");
 if(!menuBtn||!menu||!avatarBtn||!overlay)return;
-if(topLogin) topLogin.addEventListener("click",()=>{ const b=document.getElementById("khunnanoLoginBtn"); if(b) b.click(); else { const m=document.getElementById("khunnanoMenuLogin"); if(m) m.click(); } });
 const key="khunnano-profile-v2";
-function load(){try{return JSON.parse(localStorage.getItem(key)||"{}")}catch(e){return {}}}
+let pendingFile=null;
+function localProfile(){try{return JSON.parse(localStorage.getItem(key)||"{}")}catch(e){return {}}}
 function render(v){preview.innerHTML="";avatarBtn.innerHTML="";if(v){let a=document.createElement("img");a.src=v;a.alt="รูปโปรไฟล์";preview.appendChild(a);let b=document.createElement("img");b.src=v;b.alt="อวตาร";b.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%";avatarBtn.appendChild(b)}else{preview.textContent="👤";avatarBtn.textContent="👤"}}
-function apply(){let p=load();nameInput.value=p.name||"";render(p.avatar||"");let n=document.getElementById("khunnanoMenuName");if(n)n.textContent=p.name||"สมาชิก STICKER KHUNNANO"}
-function openProfile(){apply();status.textContent="";photoStatus.textContent="";overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false")}
-function closeProfile(){overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true")}
+async function getAccountProfile(){
+  try{
+    const supabase=await window.khunnanoAuth.ready;
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user)return null;
+    const {data,error}=await supabase.from("profiles").select("display_name,avatar_url").eq("user_id",user.id).maybeSingle();
+    if(error)throw error;
+    return data||{};
+  }catch(e){console.error("Profile load failed:",e);return null}
+}
+async function apply(){
+  const account=await getAccountProfile();
+  const p=account||localProfile();
+  nameInput.value=p.display_name||p.name||"";
+  render(p.avatar_url||p.avatar||"");
+  let n=document.getElementById("khunnanoMenuName");if(n)n.textContent=p.display_name||p.name||"สมาชิก STICKER KHUNNANO";
+}
+async function openProfile(){
+  pendingFile=null;fileInput.value="";status.textContent="กำลังโหลดโปรไฟล์...";photoStatus.textContent="";overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false");await apply();status.textContent="";
+}
+function closeProfile(){overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");pendingFile=null;if(fileInput)fileInput.value=""}
 menuBtn.addEventListener("click",e=>{e.stopPropagation();let o=!menu.classList.contains("open");menu.classList.toggle("open",o);menuBtn.setAttribute("aria-expanded",o?"true":"false")});
 avatarBtn.addEventListener("click",e=>{e.stopPropagation();openProfile()});
 if(profileBtn)profileBtn.addEventListener("click",openProfile);
+if(topLogin) topLogin.addEventListener("click",()=>{ const b=document.getElementById("khunnanoLoginBtn"); if(b) b.click(); else { const m=document.getElementById("khunnanoMenuLogin"); if(m) m.click(); } });
 document.addEventListener("click",e=>{if(!e.target.closest(".khunnano-member-tools")){menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false")}});
 closeBtn.addEventListener("click",closeProfile);overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfile()});
 pickBtn.addEventListener("click",()=>fileInput.click());
-fileInput.addEventListener("change",()=>{let f=fileInput.files&&fileInput.files[0];if(!f)return;if(!f.type.startsWith("image/")){photoStatus.textContent="กรุณาเลือกไฟล์รูปภาพครับ";return}if(f.size>5*1024*1024){photoStatus.textContent="รูปใหญ่เกินไปครับ (สูงสุด 5 MB)";return}let r=new FileReader();r.onload=()=>{let p=load();p.avatar=r.result;localStorage.setItem(key,JSON.stringify(p));render(p.avatar);photoStatus.textContent="เลือกรูปแล้ว ✓"};r.readAsDataURL(f)});
-saveBtn.addEventListener("click",()=>{let n=nameInput.value.trim();if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}let p=load();p.name=n;localStorage.setItem(key,JSON.stringify(p));apply();let mn=document.getElementById("khunnanoMenuName");if(mn)mn.textContent=n;status.textContent="บันทึกโปรไฟล์แล้ว ✓";setTimeout(closeProfile,500)});
+fileInput.addEventListener("change",()=>{let f=fileInput.files&&fileInput.files[0];if(!f)return;if(!f.type.startsWith("image/")){photoStatus.textContent="กรุณาเลือกไฟล์รูปภาพครับ";pendingFile=null;return}if(f.size>5*1024*1024){photoStatus.textContent="รูปใหญ่เกินไปครับ (สูงสุด 5 MB)";pendingFile=null;return}pendingFile=f;let r=new FileReader();r.onload=()=>{render(r.result);photoStatus.textContent="เลือกรูปแล้ว ✓ (จะบันทึกเข้าบัญชีเมื่อกดบันทึก)"};r.readAsDataURL(f)});
+saveBtn.addEventListener("click",async()=>{
+  const n=nameInput.value.trim();if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}
+  status.textContent="กำลังบันทึก...";saveBtn.disabled=true;
+  try{
+    const supabase=await window.khunnanoAuth.ready;
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){status.textContent="กรุณาเข้าสู่ระบบก่อนครับ";return}
+    let avatarUrl=null;
+    const current=await getAccountProfile();
+    avatarUrl=current&&current.avatar_url?current.avatar_url:null;
+    if(pendingFile){
+      const ext=(pendingFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+      const path=user.id+"/avatar-"+Date.now()+"."+ext;
+      const upload=await supabase.storage.from("avatars").upload(path,pendingFile,{contentType:pendingFile.type,upsert:false});
+      if(upload.error)throw upload.error;
+      const pub=supabase.storage.from("avatars").getPublicUrl(path);
+      avatarUrl=pub.data.publicUrl;
+    }
+    const {error}=await supabase.from("profiles").upsert({user_id:user.id,display_name:n,avatar_url:avatarUrl,updated_at:new Date().toISOString()});
+    if(error)throw error;
+    localStorage.removeItem(key);
+    pendingFile=null;
+    await apply();
+    status.textContent="บันทึกโปรไฟล์เข้าบัญชีแล้ว ✓";photoStatus.textContent="";
+    setTimeout(closeProfile,700);
+  }catch(e){console.error(e);status.textContent="บันทึกไม่สำเร็จ: "+(e.message||"เกิดข้อผิดพลาด");}
+  finally{saveBtn.disabled=false}
+});
+window.khunnanoProfile={get: getAccountProfile, refresh: apply};
 apply();
 })();
 </script>
@@ -1174,8 +1221,9 @@ apply();
         signIn.style.display = "none"; signUp.style.display = "none"; signOut.style.display = "block";
         userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (topLogin) topLogin.style.display = "none";
-        const savedProfile = (function(){ try { return JSON.parse(localStorage.getItem("khunnano-profile-v2") || "{}"); } catch(e) { return {}; } })();
-        if (menuName) menuName.textContent = savedProfile.name || "สมาชิก STICKER KHUNNANO";
+        const accountProfile = window.khunnanoProfile ? await window.khunnanoProfile.get() : null;
+        const savedProfile = accountProfile || (function(){ try { return JSON.parse(localStorage.getItem("khunnano-profile-v2") || "{}"); } catch(e) { return {}; } })();
+        if (menuName) menuName.textContent = savedProfile.display_name || savedProfile.name || "สมาชิก STICKER KHUNNANO";
         if (menuEmail) menuEmail.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (menuLogin) menuLogin.style.display = "none";
         if (menuProfile) menuProfile.style.display = "block";
