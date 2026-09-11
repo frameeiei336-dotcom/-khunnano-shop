@@ -1351,6 +1351,16 @@ apply();
     if (window.khunnanoProfile) await window.khunnanoProfile.refresh();
   });
 
+  const menuOrders = document.getElementById("khunnanoMenuOrders");
+  if (menuOrders) menuOrders.addEventListener("click", function () {
+    const ordersBtn = document.getElementById("myOrdersBtn");
+    const menu = document.getElementById("khunnanoMemberMenu");
+    const menuBtn = document.getElementById("khunnanoMenuBtn");
+    if (menu) menu.classList.remove("open");
+    if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+    if (ordersBtn) ordersBtn.click();
+  });
+
   refreshUser();
 
   // อัปเดตเมนูทันทีเมื่อสถานะล็อกอินเปลี่ยน โดยไม่ต้องรีเฟรชหน้า
