@@ -1129,12 +1129,24 @@ async function getAccountProfile(){
 }
 async function apply(){
   const account=await getAccountProfile();
-  const p=account||localProfile();
-  nameInput.value=p.display_name||p.name||"";
-  render(p.avatar_url||p.avatar||"");
-  let n=document.getElementById("khunnanoMenuName");if(n)n.textContent=p.display_name||p.name||"สมาชิก STICKER KHUNNANO";
+  const p=account||{};
+  nameInput.value=p.display_name||"";
+  render(p.avatar_url||"");
+  let n=document.getElementById("khunnanoMenuName");if(n)n.textContent=p.display_name||"สมาชิก STICKER KHUNNANO";
 }
 async function openProfile(){
+  try{
+    const supabase=await window.khunnanoAuth.ready;
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){
+      const b=document.getElementById("khunnanoTopLogin")||document.getElementById("khunnanoLoginBtn");
+      if(b)b.click();
+      return;
+    }
+  }catch(e){
+    console.error("Profile auth check failed:",e);
+    return;
+  }
   pendingFile=null;fileInput.value="";status.textContent="กำลังโหลดโปรไฟล์...";photoStatus.textContent="";overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false");await apply();status.textContent="";
 }
 function closeProfile(){overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");pendingFile=null;if(fileInput)fileInput.value=""}
@@ -1222,8 +1234,8 @@ apply();
         userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (topLogin) topLogin.style.display = "none";
         const accountProfile = window.khunnanoProfile ? await window.khunnanoProfile.get() : null;
-        const savedProfile = accountProfile || (function(){ try { return JSON.parse(localStorage.getItem("khunnano-profile-v2") || "{}"); } catch(e) { return {}; } })();
-        if (menuName) menuName.textContent = savedProfile.display_name || savedProfile.name || "สมาชิก STICKER KHUNNANO";
+        const savedProfile = accountProfile || {};
+        if (menuName) menuName.textContent = savedProfile.display_name || "สมาชิก STICKER KHUNNANO";
         if (menuEmail) menuEmail.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (menuLogin) menuLogin.style.display = "none";
         if (menuProfile) menuProfile.style.display = "block";
@@ -1292,6 +1304,7 @@ apply();
     }
     status.textContent = "ออกจากระบบแล้ว";
     await refreshUser();
+    if (window.khunnanoProfile) await window.khunnanoProfile.refresh();
   });
 
   const menuLogin = document.getElementById("khunnanoMenuLogin");
@@ -1312,6 +1325,7 @@ apply();
     if (menu) menu.classList.remove("open");
     if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
     await refreshUser();
+    if (window.khunnanoProfile) await window.khunnanoProfile.refresh();
   });
 
   refreshUser();
@@ -1322,6 +1336,7 @@ apply();
       const supabase = await window.khunnanoAuth.ready;
       supabase.auth.onAuthStateChange(async function (_event, session) {
         await refreshUser();
+        if (window.khunnanoProfile) await window.khunnanoProfile.refresh();
         if (session && session.user) {
           closeAuth();
           const menu = document.getElementById("khunnanoMemberMenu");
