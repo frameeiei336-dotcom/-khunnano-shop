@@ -944,7 +944,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">LittleTwinStars ผมหลากสี</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 150 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 150 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">57 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -960,7 +960,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">Cat and rose</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 50 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 50 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">19 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -976,7 +976,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">Princess bunny II</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 50 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 50 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">19 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -992,7 +992,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">Lovely fluffy bunny (beige ver.)</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 50 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 50 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">19 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -1008,7 +1008,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">แฟรี่บันนี่ II (Revised)</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 50 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 50 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">19 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -1025,7 +1025,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="poster-content">
 <div class="poster-name">ตัวละครซานริโอ ก้นกลมปุ๊ก</div>
-<div style="font-size:11px;color:var(--text-sub);">💎 150 เหรียญ</div>
+<div style="font-size:11px;color:var(--text-sub);">🪙 150 เหรียญ</div>
 <div class="poster-bottom">
 <span class="poster-price">57 บาท</span>
 <div style="display:flex;gap:6px;align-items:center;">
@@ -1481,7 +1481,7 @@ apply();
                 const coinEl = card && Array.from(card.querySelectorAll('div,span')).find(el => /เหรียญ/.test((el.textContent || '').trim()) && /\d/.test((el.textContent || '').trim()));
                 const coinText = coinEl ? coinEl.textContent.trim() : '';
                 const copyMessage = 'คำสั่งซื้อจากเว็บไซต์\nสินค้า: ' + productName
-                    + (coinText ? '\n💎 ' + coinText.replace(/^💎\s*/, '') : '')
+                    + (coinText ? '\n🪙 ' + coinText.replace(/^🪙\s*/, '').replace(/^💎\s*/, '') : '')
                     + (priceText ? '\n💰 ' + priceText : '')
                     + '\n🔗 ' + productLink;
                 const copied = await copyText(copyMessage);
