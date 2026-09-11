@@ -799,6 +799,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <button class="khunnano-menu-item khunnano-menu-login" id="khunnanoMenuLogin" type="button">🔐 เข้าสู่ระบบ / สมัครสมาชิก</button>
 <button class="khunnano-menu-item" id="khunnanoMenuProfile" type="button" style="display:none;">👤 โปรไฟล์ของฉัน</button>
 <button class="khunnano-menu-item" id="khunnanoMenuOrders" type="button" style="display:none;">📦 ประวัติการสั่งซื้อ</button>
+<button class="khunnano-menu-item" id="khunnanoMenuAdmin" type="button" style="display:none;">🛠️ แผงควบคุมแอดมิน</button>
 <button class="khunnano-menu-item khunnano-menu-logout" id="khunnanoMenuLogout" type="button" style="display:none;">🚪 ออกจากระบบ</button>
 </div>
 </div>
@@ -1227,6 +1228,7 @@ apply();
       const menuLogin = document.getElementById("khunnanoMenuLogin");
       const menuProfile = document.getElementById("khunnanoMenuProfile");
       const menuOrders = document.getElementById("khunnanoMenuOrders");
+      const menuAdmin = document.getElementById("khunnanoMenuAdmin");
       const menuLogout = document.getElementById("khunnanoMenuLogout");
       if (user) {
         btn.textContent = "👤 บัญชีของฉัน";
@@ -1240,6 +1242,12 @@ apply();
         if (menuLogin) menuLogin.style.display = "none";
         if (menuProfile) menuProfile.style.display = "block";
         if (menuOrders) menuOrders.style.display = "block";
+        if (menuAdmin) menuAdmin.style.display = "none";
+        try {
+          const supabase = await window.khunnanoAuth.ready;
+          const { data: roleRow, error: roleError } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+          if (!roleError && roleRow && roleRow.role === "admin" && menuAdmin) menuAdmin.style.display = "block";
+        } catch (roleError) { console.error("Admin role check failed:", roleError); }
         if (menuLogout) menuLogout.style.display = "block";
       } else {
         btn.textContent = "🔐 เข้าสู่ระบบ / สมัครสมาชิก";
@@ -1251,6 +1259,7 @@ apply();
         if (menuLogin) menuLogin.style.display = "block";
         if (menuProfile) menuProfile.style.display = "none";
         if (menuOrders) menuOrders.style.display = "none";
+        if (menuAdmin) menuAdmin.style.display = "none";
         if (menuLogout) menuLogout.style.display = "none";
       }
     } catch (error) { console.error(error); }
@@ -1308,6 +1317,7 @@ apply();
   });
 
   const menuLogin = document.getElementById("khunnanoMenuLogin");
+  const menuAdmin = document.getElementById("khunnanoMenuAdmin");
   const menuLogout = document.getElementById("khunnanoMenuLogout");
   if (menuLogin) menuLogin.addEventListener("click", function () {
     const b = document.getElementById("khunnanoLoginBtn");
@@ -1316,6 +1326,19 @@ apply();
     const menuBtn = document.getElementById("khunnanoMenuBtn");
     if (menu) menu.classList.remove("open");
     if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+  });
+  if (menuAdmin) menuAdmin.addEventListener("click", async function () {
+    try {
+      const supabase = await window.khunnanoAuth.ready;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: roleRow, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      if (error || !roleRow || roleRow.role !== "admin") {
+        alert("บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ");
+        return;
+      }
+      window.location.href = "/admin.html";
+    } catch (e) { console.error(e); alert("ตรวจสอบสิทธิ์แอดมินไม่สำเร็จครับ"); }
   });
   if (menuLogout) menuLogout.addEventListener("click", async function () {
     const result = await window.khunnanoLogin.signOut();
