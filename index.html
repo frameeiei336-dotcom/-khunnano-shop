@@ -1120,9 +1120,9 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
     card.className='poster-card';
     card.setAttribute('data-category',p.category||'');
     card.setAttribute('data-db-product','true');
-    const productLink=p.product_url||p.order_url||'';
-    if(productLink) card.setAttribute('data-product-link',productLink);
     const orderLink=p.order_url||'https://line.me/R/ti/p/@635plmxg';
+    const productLink=p.product_url||orderLink;
+    card.setAttribute('data-product-link',productLink);
     const image=p.image_url||'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="100%" height="100%" fill="#eee5f3"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="28" fill="#75677e">STICKER KHUNNANO</text></svg>');
     const previews=Array.isArray(p.preview_images)?p.preview_images.filter(Boolean):[];
     const previewAttr=previews.length ? ' data-example-list="'+esc(previews.join('|'))+'"' : '';
@@ -1135,7 +1135,7 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
         '<span class="poster-price">'+money(p.price)+' บาท</span>'+
         (previews.length?'<div style="font-size:11px;color:var(--text-sub);margin-top:4px;">🖼️ แตะรูปเพื่อดูตัวอย่าง '+previews.length+' รูป</div>':'')+
         '<div class="poster-actions">'+
-          (productLink?'<a class="poster-btn" href="'+esc(orderLink)+'">💬 สั่งซื้อ</a>':'<a class="poster-btn" href="'+esc(orderLink)+'">💬 สั่งซื้อ</a>')+
+          '<a class="poster-btn" data-db-order="true" href="'+esc(orderLink)+'">💬 สั่งซื้อ</a>'+
           '<button class="cart-add-btn" type="button">🛒 เพิ่มลงตะกร้า</button>'+
         '</div>'+
       '</div>';
