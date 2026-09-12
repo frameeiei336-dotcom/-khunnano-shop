@@ -1111,6 +1111,46 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <script src="/js/login.js"></script>
 
 <!-- DB PRODUCTS: เพิ่มสินค้าใหม่จาก Supabase โดยไม่แทนที่สินค้าเดิม -->
+
+<script id="khunnano-store-status-js">
+(function(){
+  async function checkStoreOpen(){
+    try{
+      const supabase=await window.khunnanoAuth.ready;
+      const {data,error}=await supabase.from('store_settings').select('is_open').eq('id',1).maybeSingle();
+      if(error){ console.error('Store status load failed:',error); return true; }
+      return data ? data.is_open !== false : true;
+    }catch(e){
+      console.error('Store status initialization failed:',e);
+      return true;
+    }
+  }
+
+  document.addEventListener('click', async function(e){
+    const link=e.target.closest && e.target.closest('a.poster-btn');
+    if(!link || !/สั่งซื้อ/i.test((link.textContent||'').trim())) return;
+    const open=await checkStoreOpen();
+    if(!open){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(typeof window.showOrderToast==='function') window.showOrderToast('🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้');
+      else alert('🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้');
+    }
+  }, true);
+
+  document.addEventListener('click', async function(e){
+    const btn=e.target.closest && e.target.closest('[id="myOrdersBtn"], .checkout-btn, [data-checkout]');
+    if(!btn) return;
+    const open=await checkStoreOpen();
+    if(!open){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(typeof window.showOrderToast==='function') window.showOrderToast('🔴 ตอนนี้ร้านปิดอยู่ครับ กรุณารอร้านเปิดก่อนสั่งซื้อ');
+      else alert('🔴 ตอนนี้ร้านปิดอยู่ครับ กรุณารอร้านเปิดก่อนสั่งซื้อ');
+    }
+  }, true);
+})();
+</script>
 <script id="khunnano-db-products-js">
 (function(){
   function esc(v){return String(v ?? '').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
