@@ -767,12 +767,13 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
-<!-- ป๊อปอัพแจ้งสถานะร้าน -->
+<!-- ป๊อปอัพประกาศจากแอดมิน -->
 <div class="popup-overlay" id="announcementPopup">
 <div class="popup-box">
-<div class="popup-icon">🏪</div>
-<div class="popup-title">สถานะร้าน</div>
-<div class="popup-desc" id="storePopupDesc">กำลังตรวจสอบสถานะร้าน...</div>
+<div class="popup-icon" id="announcementIcon">📢</div>
+<img id="announcementImage" alt="รูปประกาศ" style="display:none;width:100%;max-height:260px;object-fit:cover;border-radius:16px;margin:0 0 14px;">
+<div class="popup-title" id="announcementTitle">ประกาศจากร้าน</div>
+<div class="popup-desc" id="announcementMessage" style="white-space:pre-line;">กำลังโหลดประกาศ...</div>
 <button class="popup-btn" id="popupAcknowledge" type="button">รับทราบ, เข้าชมเว็บเลย! 💜</button>
 </div>
 </div>
@@ -1729,12 +1730,54 @@ apply();
         checkStoreStatus();
 
         const popup = get('announcementPopup');
-        // แสดงป๊อปอัพแจ้งเตือนทันทีเมื่อเปิดเว็บ (ค่าเริ่มต้น)
-        if (popup) {
-            popup.classList.remove('closed');
-            popup.classList.add('open');
-        }
         const popupAcknowledge = get('popupAcknowledge');
+
+        // โหลดประกาศล่าสุดจาก Supabase แล้วค่อยแสดง popup เฉพาะเมื่อมีประกาศที่เปิดใช้งาน
+        async function loadKhunnanoAnnouncement(){
+            const titleEl = get('announcementTitle');
+            const messageEl = get('announcementMessage');
+            const imageEl = get('announcementImage');
+            const iconEl = get('announcementIcon');
+            try {
+                const supabase = await window.khunnanoAuth.ready;
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .select('id,title,message,image_url,is_active,created_at,updated_at')
+                    .eq('is_active', true)
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!data) {
+                    if (popup) popup.classList.add('closed');
+                    return;
+                }
+
+                if (titleEl) titleEl.textContent = data.title || 'ประกาศจากร้าน';
+                if (messageEl) messageEl.textContent = data.message || '';
+                if (data.image_url && imageEl) {
+                    imageEl.src = data.image_url;
+                    imageEl.style.display = 'block';
+                    if (iconEl) iconEl.style.display = 'none';
+                } else if (imageEl) {
+                    imageEl.removeAttribute('src');
+                    imageEl.style.display = 'none';
+                    if (iconEl) iconEl.style.display = 'block';
+                }
+
+                if (popup) {
+                    popup.classList.remove('closed');
+                    popup.classList.add('open');
+                }
+            } catch (error) {
+                console.error('Announcement load failed:', error);
+                if (popup) popup.classList.add('closed');
+            }
+        }
+
+        loadKhunnanoAnnouncement();
         if (popupAcknowledge) {
             popupAcknowledge.addEventListener('click', function (e) {
                 e.preventDefault();
