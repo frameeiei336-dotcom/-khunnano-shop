@@ -767,22 +767,18 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
-<!-- ป๊อปอัพแจ้งเตือนเวลาเปิด-ปิด -->
+<!-- ป๊อปอัพแจ้งสถานะร้าน -->
 <div class="popup-overlay" id="announcementPopup">
 <div class="popup-box">
-<div class="popup-icon">⏰</div>
-<div class="popup-title">เวลาทำการของร้าน</div>
-<div class="popup-desc">
-                ร้านเปิดให้บริการทุกวัน เวลา:<br/>
-<b>09:00 น. - 02:00 น.</b> 🚀<br/>
-                สติ๊กเกอร์ / ธีมไลน์ เริ่มต้นเพียง 19 บาท ทักสั่งซื้อได้เลยช่วงเวลาทำการจ้า!
-            </div>
+<div class="popup-icon">🏪</div>
+<div class="popup-title">สถานะร้าน</div>
+<div class="popup-desc" id="storePopupDesc">กำลังตรวจสอบสถานะร้าน...</div>
 <button class="popup-btn" id="popupAcknowledge" type="button">รับทราบ, เข้าชมเว็บเลย! 💜</button>
 </div>
 </div>
 <div class="app-screen">
 <div class="promo-ticker">
-<span>🔥 ยินดีต้อนรับสู่ STICKER KHUNNANO | เปิดให้บริการทุกวัน 09:00 - 02:00 น. เติมไว ทักเลย! 🚀</span>
+<span>🔥 ยินดีต้อนรับสู่ STICKER KHUNNANO | แอดมินเป็นผู้เปิด–ปิดร้านเอง 💜</span>
 </div>
 <div class="brand-header">
 <div class="brand-title">✨ STICKER KHUNNANO</div>
@@ -804,10 +800,10 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 </div>
 </div>
-<!-- แถบแสดงสถานะเปิด/ปิดร้านตามเวลาจริง -->
+<!-- แถบแสดงสถานะร้านจากแอดมิน -->
 <div class="store-status-bar">
-<span>🕒 เวลาทำการ: 09:00 - 02:00 น.</span>
-<span class="status-badge status-open" id="storeStatusBadge">🟢 กำลังเปิดให้บริการ</span>
+<span>🏪 สถานะร้าน</span>
+<span class="status-badge status-open" id="storeStatusBadge">กำลังตรวจสอบ...</span>
 </div>
 <div class="features-bar">
 <span>✨ เหรียญแท้ 100%</span>
@@ -1111,46 +1107,6 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 <script src="/js/login.js"></script>
 
 <!-- DB PRODUCTS: เพิ่มสินค้าใหม่จาก Supabase โดยไม่แทนที่สินค้าเดิม -->
-
-<script id="khunnano-store-status-js">
-(function(){
-  async function checkStoreOpen(){
-    try{
-      const supabase=await window.khunnanoAuth.ready;
-      const {data,error}=await supabase.from('store_settings').select('is_open').eq('id',1).maybeSingle();
-      if(error){ console.error('Store status load failed:',error); return true; }
-      return data ? data.is_open !== false : true;
-    }catch(e){
-      console.error('Store status initialization failed:',e);
-      return true;
-    }
-  }
-
-  document.addEventListener('click', async function(e){
-    const link=e.target.closest && e.target.closest('a.poster-btn');
-    if(!link || !/สั่งซื้อ/i.test((link.textContent||'').trim())) return;
-    const open=await checkStoreOpen();
-    if(!open){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if(typeof window.showOrderToast==='function') window.showOrderToast('🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้');
-      else alert('🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้');
-    }
-  }, true);
-
-  document.addEventListener('click', async function(e){
-    const btn=e.target.closest && e.target.closest('[id="myOrdersBtn"], .checkout-btn, [data-checkout]');
-    if(!btn) return;
-    const open=await checkStoreOpen();
-    if(!open){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if(typeof window.showOrderToast==='function') window.showOrderToast('🔴 ตอนนี้ร้านปิดอยู่ครับ กรุณารอร้านเปิดก่อนสั่งซื้อ');
-      else alert('🔴 ตอนนี้ร้านปิดอยู่ครับ กรุณารอร้านเปิดก่อนสั่งซื้อ');
-    }
-  }, true);
-})();
-</script>
 <script id="khunnano-db-products-js">
 (function(){
   function esc(v){return String(v ?? '').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
@@ -1605,6 +1561,7 @@ apply();
         document.addEventListener('click', async function (e) {
             const link = e.target.closest && e.target.closest('a.poster-btn');
             if (!link || !/สั่งซื้อ/i.test((link.textContent || '').trim())) return;
+            if (!(await window.getKhunnanoStoreOpen())) { e.preventDefault(); e.stopImmediatePropagation(); showOrderToast('🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้'); return; }
             if (!(await requireLogin())) { e.preventDefault(); e.stopPropagation(); return; }
             e.preventDefault();
             e.stopPropagation();
@@ -1669,17 +1626,25 @@ apply();
         melody: '✨ หมวดหมู่: เมโลดี้เพลงรอสาย'
     };
 
-    window.checkStoreStatus = function () {
+    window.getKhunnanoStoreOpen = async function () {
+        try {
+            const supabase = await window.khunnanoAuth.ready;
+            const { data, error } = await supabase.from('store_settings').select('is_open').eq('id', 1).maybeSingle();
+            if (error) { console.error('Store status load failed:', error); return true; }
+            return data ? data.is_open !== false : true;
+        } catch (e) { console.error('Store status initialization failed:', e); return true; }
+    };
+
+    window.checkStoreStatus = async function () {
         const badge = get('storeStatusBadge');
-        if (!badge) return;
-        const hour = new Date().getHours();
-        if (hour >= 9 || hour < 2) {
-            badge.className = 'status-badge status-open';
-            badge.innerText = '🟢 กำลังเปิดให้บริการ';
-        } else {
-            badge.className = 'status-badge status-close';
-            badge.innerText = '🔴 นอกเวลาทำการ (เปิด 09:00)';
+        const popupDesc = get('storePopupDesc');
+        const isOpen = await window.getKhunnanoStoreOpen();
+        if (badge) {
+            badge.className = isOpen ? 'status-badge status-open' : 'status-badge status-close';
+            badge.innerText = isOpen ? '🟢 ร้านเปิดอยู่' : '🔴 ร้านปิดอยู่';
         }
+        if (popupDesc) popupDesc.innerText = isOpen ? '🟢 ตอนนี้ร้านเปิดให้บริการครับ' : '🔴 ตอนนี้ร้านปิดอยู่ครับ สามารถเลือกสินค้าใส่ตะกร้าไว้ก่อนได้';
+        return isOpen;
     };
 
     function applyCategoryFromHash() {
@@ -1762,7 +1727,6 @@ apply();
         });
 
         checkStoreStatus();
-        setInterval(checkStoreStatus, 60000);
 
         const popup = get('announcementPopup');
         // แสดงป๊อปอัพแจ้งเตือนทันทีเมื่อเปิดเว็บ (ค่าเริ่มต้น)
@@ -2049,7 +2013,9 @@ window.enterSite = function () {
      const checkout=e.target.closest&&e.target.closest('#cartCheckout');
      if(checkout){
        e.preventDefault();e.stopPropagation();
-       window.khunnanoLogin.getUser().then(function(result){
+       window.getKhunnanoStoreOpen().then(function(isOpen){
+         if(!isOpen){ showToast('🔴 ตอนนี้ร้านปิดอยู่ครับ กรุณารอร้านเปิดก่อนสั่งซื้อ'); return; }
+         window.khunnanoLogin.getUser().then(function(result){
          const user=result&&result.data&&result.data.user;
          if(!user){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); return; }
          const c=getCart();
@@ -2057,7 +2023,8 @@ window.enterSite = function () {
          let msg='คำสั่งซื้อจากเว็บไซต์\n';
          c.forEach((x,i)=>{ msg+='\n'+(i+1)+'. '+x.name+' × '+(x.qty||1)+(x.priceText?' — '+x.priceText:'')+(x.link?'\n🔗 '+x.link:'')+'\n'; });
          copy(msg).then(ok=>{ showToast(ok?'✅ คัดลอกรายการแล้ว กำลังเปิด LINE':'📋 คัดลอกไม่สำเร็จ กำลังเปิด LINE'); setTimeout(()=>{window.location.href=LINE},180); });
-       }).catch(function(){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); });
+         }).catch(function(){ const b=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn'); if(b)b.click(); });
+       });
        return;
        /* legacy checkout body intentionally bypassed */
        const c=getCart();
