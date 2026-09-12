@@ -17,7 +17,7 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 .overlay.open{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .modal h2{margin:0 0 16px;font-size:20px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;font-weight:700}
-.field input,.field select{width:100%;box-sizing:border-box;border:1px solid #ddd1e5;border-radius:10px;padding:11px;font:inherit;background:#fff}
+.field input,.field select,.field textarea{width:100%;box-sizing:border-box;border:1px solid #ddd1e5;border-radius:10px;padding:11px;font:inherit;background:#fff}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}#formStatus{font-size:12px;color:#9b3030;margin-top:10px;min-height:18px}
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
 </style>
@@ -34,6 +34,17 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
     <button class="primary" id="storeOpen" type="button">🟢 เปิดร้าน</button>
     <button class="danger" id="storeClose" type="button">🔴 ปิดร้าน</button>
   </div>
+</div>
+
+<div class="announcement-control" style="border:1px solid #eadff0;border-radius:16px;padding:14px;margin-bottom:16px;background:#faf7fc">
+  <div style="font-weight:800;margin-bottom:8px">📢 ประกาศหน้าร้าน</div>
+  <div style="font-size:12px;color:#75677e;margin-bottom:12px">เขียนประกาศเอง และเลือกรูปจากคลังภาพได้</div>
+  <div class="field" style="margin-bottom:10px"><label for="announcementTitle">หัวข้อประกาศ</label><input id="announcementTitle" maxlength="120" placeholder="เช่น แจ้งข่าวร้านวันนี้"></div>
+  <div class="field" style="margin-bottom:10px"><label for="announcementMessage">ข้อความประกาศ</label><textarea id="announcementMessage" maxlength="1000" rows="4" placeholder="พิมพ์ข้อความที่อยากแจ้งลูกค้าได้เลย"></textarea></div>
+  <div class="field" style="margin-bottom:10px"><label for="announcementImageFile">รูปประกาศ</label><input id="announcementImageFile" type="file" accept="image/*"><div id="announcementImageHint" style="font-size:11px;color:#75677e">เลือกรูปจากคลังภาพในมือถือ</div></div>
+  <div class="field" style="margin-bottom:10px"><label><input id="announcementActive" type="checkbox" checked> แสดงประกาศบนหน้าร้าน</label></div>
+  <div id="announcementStatus" style="font-size:12px;color:#9b3030;min-height:18px;margin-bottom:8px"></div>
+  <div class="toolbar" style="margin:0"><button class="primary" id="saveAnnouncement" type="button">📢 บันทึกประกาศ</button><button class="back" id="disableAnnouncement" type="button">ซ่อนประกาศ</button></div>
 </div>
 <div class="toolbar">
 <button class="primary" id="addProduct">＋ เพิ่มสินค้า</button>
@@ -84,6 +95,8 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 (async function(){
 const status=document.getElementById('status'),panel=document.getElementById('panel'),rows=document.getElementById('productRows'),empty=document.getElementById('empty');
 const storeStatus=document.getElementById('storeStatus'),storeOpen=document.getElementById('storeOpen'),storeClose=document.getElementById('storeClose');
+const announcementTitle=document.getElementById('announcementTitle'),announcementMessage=document.getElementById('announcementMessage'),announcementImageFile=document.getElementById('announcementImageFile'),announcementImageHint=document.getElementById('announcementImageHint'),announcementActive=document.getElementById('announcementActive'),announcementStatus=document.getElementById('announcementStatus'),saveAnnouncement=document.getElementById('saveAnnouncement'),disableAnnouncement=document.getElementById('disableAnnouncement');
+let currentAnnouncement=null;
 const overlay=document.getElementById('productOverlay'),form=document.getElementById('productForm'),formTitle=document.getElementById('formTitle'),formStatus=document.getElementById('formStatus'),saveProduct=document.getElementById('saveProduct');
 const mainImageFile=document.getElementById('productImageFile'),previewFiles=document.getElementById('productPreviewFiles'),mainImageHint=document.getElementById('mainImageHint'),previewImageHint=document.getElementById('previewImageHint');
 let supabase=null,products=[],editingPreviewImages=[];
@@ -122,6 +135,52 @@ async function setStoreStatus(isOpen){
     return;
   }
   await loadStoreStatus();
+}
+async function uploadAnnouncementImage(file){
+  const path='announcements/image-'+Date.now()+'.'+fileExt(file);
+  const {error}=await supabase.storage.from('announcement-images').upload(path,file,{cacheControl:'3600',upsert:false});
+  if(error)throw error;
+  const {data}=supabase.storage.from('announcement-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+async function loadAnnouncement(){
+  announcementStatus.textContent='กำลังโหลดประกาศ...';
+  const {data,error}=await supabase.from('announcements').select('id,title,message,image_url,is_active,created_at,updated_at').eq('is_active',true).order('id',{ascending:false}).limit(1).maybeSingle();
+  if(error){console.error(error);announcementStatus.textContent='โหลดประกาศไม่สำเร็จ: '+error.message;return;}
+  currentAnnouncement=data||null;
+  announcementTitle.value=data?.title||'';
+  announcementMessage.value=data?.message||'';
+  announcementActive.checked=data?.is_active!==false;
+  announcementImageFile.value='';
+  announcementImageHint.textContent=data?.image_url?'มีรูปประกาศเดิมแล้ว — เลือกรูปใหม่เพื่อเปลี่ยน':'เลือกรูปจากคลังภาพในมือถือ';
+  announcementStatus.textContent=data?'มีประกาศที่กำลังแสดงอยู่':'ยังไม่มีประกาศที่กำลังแสดง';
+}
+async function saveAnnouncementData(){
+  announcementStatus.textContent='';saveAnnouncement.disabled=true;saveAnnouncement.textContent='กำลังบันทึก...';
+  try{
+    let imageUrl=currentAnnouncement?.image_url||null;
+    if(announcementImageFile.files[0]) imageUrl=await uploadAnnouncementImage(announcementImageFile.files[0]);
+    if(currentAnnouncement?.id){
+      const {error}=await supabase.from('announcements').update({title:announcementTitle.value.trim()||null,message:announcementMessage.value.trim()||null,image_url:imageUrl,is_active:announcementActive.checked,updated_at:new Date().toISOString()}).eq('id',currentAnnouncement.id);
+      if(error)throw error;
+    }else{
+      const {error:deactivateError}=await supabase.from('announcements').update({is_active:false,updated_at:new Date().toISOString()}).eq('is_active',true);
+      if(deactivateError)throw deactivateError;
+      const {data,error}=await supabase.from('announcements').insert({title:announcementTitle.value.trim()||null,message:announcementMessage.value.trim()||null,image_url:imageUrl,is_active:announcementActive.checked}).select('id,title,message,image_url,is_active,created_at,updated_at').single();
+      if(error)throw error; currentAnnouncement=data;
+    }
+    await loadAnnouncement();
+  }catch(error){console.error(error);announcementStatus.textContent='บันทึกประกาศไม่สำเร็จ: '+(error?.message||'เกิดข้อผิดพลาด');}
+  saveAnnouncement.disabled=false;saveAnnouncement.textContent='📢 บันทึกประกาศ';
+}
+async function disableAnnouncementData(){
+  announcementStatus.textContent='';disableAnnouncement.disabled=true;
+  try{
+    const {error}=await supabase.from('announcements').update({is_active:false,updated_at:new Date().toISOString()}).eq('is_active',true);
+    if(error)throw error;
+    await loadAnnouncement();
+  }catch(error){console.error(error);announcementStatus.textContent='ซ่อนประกาศไม่สำเร็จ: '+(error?.message||'เกิดข้อผิดพลาด');}
+  disableAnnouncement.disabled=false;
 }
 async function loadProducts(){
 rows.innerHTML='';empty.style.display='none';
@@ -195,13 +254,15 @@ saveProduct.disabled=false;saveProduct.textContent='บันทึกสิน�
 });
 storeOpen.addEventListener('click',()=>setStoreStatus(true));
 storeClose.addEventListener('click',()=>setStoreStatus(false));
+saveAnnouncement.addEventListener('click',saveAnnouncementData);
+disableAnnouncement.addEventListener('click',disableAnnouncementData);
 document.getElementById('addProduct').addEventListener('click',()=>openForm(null));document.getElementById('cancelForm').addEventListener('click',closeForm);overlay.addEventListener('click',e=>{if(e.target===overlay)closeForm();});
 try{
 supabase=await window.khunnanoAuth.ready;
 const {data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user){location.href='/?login=required';return;}
 const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
 if(roleError||!roleRow||roleRow.role!=='admin'){status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';setTimeout(()=>location.href='/',1200);return;}
-status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadStoreStatus();await loadProducts();
+status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadStoreStatus();await loadAnnouncement();await loadProducts();
 document.getElementById('logout').addEventListener('click',async()=>{await window.khunnanoLogin.signOut();location.href='/';});
 }catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
 })();
