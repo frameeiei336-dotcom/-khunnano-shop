@@ -27,6 +27,14 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 <h1>🛠️ แผงควบคุมแอดมิน</h1><div class="sub">STICKER KHUNNANO</div>
 <div id="status" class="status">กำลังตรวจสอบสิทธิ์...</div>
 <div id="panel" style="display:none">
+<div class="store-control" style="border:1px solid #eadff0;border-radius:16px;padding:14px;margin-bottom:16px;background:#faf7fc">
+  <div style="font-weight:800;margin-bottom:8px">🏪 สถานะร้าน</div>
+  <div id="storeStatus" style="font-size:13px;margin-bottom:10px">กำลังตรวจสอบ...</div>
+  <div class="toolbar" style="margin:0">
+    <button class="primary" id="storeOpen" type="button">🟢 เปิดร้าน</button>
+    <button class="danger" id="storeClose" type="button">🔴 ปิดร้าน</button>
+  </div>
+</div>
 <div class="toolbar">
 <button class="primary" id="addProduct">＋ เพิ่มสินค้า</button>
 <button class="back" onclick="location.href='/'">← กลับหน้าร้าน</button>
@@ -75,6 +83,7 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 <script>
 (async function(){
 const status=document.getElementById('status'),panel=document.getElementById('panel'),rows=document.getElementById('productRows'),empty=document.getElementById('empty');
+const storeStatus=document.getElementById('storeStatus'),storeOpen=document.getElementById('storeOpen'),storeClose=document.getElementById('storeClose');
 const overlay=document.getElementById('productOverlay'),form=document.getElementById('productForm'),formTitle=document.getElementById('formTitle'),formStatus=document.getElementById('formStatus'),saveProduct=document.getElementById('saveProduct');
 const mainImageFile=document.getElementById('productImageFile'),previewFiles=document.getElementById('productPreviewFiles'),mainImageHint=document.getElementById('mainImageHint'),previewImageHint=document.getElementById('previewImageHint');
 let supabase=null,products=[],editingPreviewImages=[];
@@ -95,6 +104,25 @@ formTitle.textContent=p?'แก้ไขสินค้า':'เพิ่มส�
 overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');
 }
 function closeForm(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+async function loadStoreStatus(){
+  const {data,error}=await supabase.from('store_settings').select('is_open').eq('id',1).maybeSingle();
+  if(error){console.error(error);storeStatus.textContent='ตรวจสอบสถานะร้านไม่สำเร็จ: '+error.message;return;}
+  const isOpen=data?.is_open!==false;
+  storeStatus.textContent=isOpen?'🟢 ร้านเปิดอยู่':'🔴 ร้านปิดอยู่';
+  storeOpen.disabled=isOpen;
+  storeClose.disabled=!isOpen;
+}
+async function setStoreStatus(isOpen){
+  storeOpen.disabled=true;storeClose.disabled=true;
+  const {error}=await supabase.from('store_settings').update({is_open:isOpen,updated_at:new Date().toISOString()}).eq('id',1);
+  if(error){
+    console.error(error);
+    storeStatus.textContent='เปลี่ยนสถานะไม่สำเร็จ: '+error.message;
+    await loadStoreStatus();
+    return;
+  }
+  await loadStoreStatus();
+}
 async function loadProducts(){
 rows.innerHTML='';empty.style.display='none';
 const {data,error}=await supabase.from('products').select('id,name,price,coins,image_url,category,product_url,order_url,preview_images,created_at').order('id',{ascending:false});
@@ -165,13 +193,15 @@ formStatus.textContent='บันทึกไม่สำเร็จ: '+(error?
 }
 saveProduct.disabled=false;saveProduct.textContent='บันทึกสินค้า';
 });
+storeOpen.addEventListener('click',()=>setStoreStatus(true));
+storeClose.addEventListener('click',()=>setStoreStatus(false));
 document.getElementById('addProduct').addEventListener('click',()=>openForm(null));document.getElementById('cancelForm').addEventListener('click',closeForm);overlay.addEventListener('click',e=>{if(e.target===overlay)closeForm();});
 try{
 supabase=await window.khunnanoAuth.ready;
 const {data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user){location.href='/?login=required';return;}
 const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
 if(roleError||!roleRow||roleRow.role!=='admin'){status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';setTimeout(()=>location.href='/',1200);return;}
-status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadProducts();
+status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadStoreStatus();await loadProducts();
 document.getElementById('logout').addEventListener('click',async()=>{await window.khunnanoLogin.signOut();location.href='/';});
 }catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
 })();
