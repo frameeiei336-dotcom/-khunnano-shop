@@ -1208,82 +1208,138 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 (function(){
 const topLogin=document.getElementById("khunnanoTopLogin"), menuBtn=document.getElementById("khunnanoMenuBtn"),menu=document.getElementById("khunnanoMemberMenu"),avatarBtn=document.getElementById("khunnanoAvatarBtn"),profileBtn=document.getElementById("khunnanoMenuProfile"),overlay=document.getElementById("khunnanoProfileOverlay"),closeBtn=document.getElementById("khunnanoProfileClose"),preview=document.getElementById("khunnanoProfileAvatarPreview"),nameInput=document.getElementById("khunnanoProfileName"),saveBtn=document.getElementById("khunnanoProfileSave"),status=document.getElementById("khunnanoProfileStatus"),fileInput=document.getElementById("khunnanoAvatarFile"),pickBtn=document.getElementById("khunnanoAvatarPick"),photoStatus=document.getElementById("khunnanoAvatarPhotoStatus");
 if(!menuBtn||!menu||!avatarBtn||!overlay)return;
-const key="khunnano-profile-v2";
+const key="khunnano-guest-profile-v3";
 let pendingFile=null;
-function localProfile(){try{return JSON.parse(localStorage.getItem(key)||"{}")}catch(e){return {}}}
-function render(v){preview.innerHTML="";avatarBtn.innerHTML="";if(v){let a=document.createElement("img");a.src=v;a.alt="รูปโปรไฟล์";preview.appendChild(a);let b=document.createElement("img");b.src=v;b.alt="อวตาร";b.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%";avatarBtn.appendChild(b)}else{preview.textContent="👤";avatarBtn.textContent="👤"}}
-async function getAccountProfile(){
-  try{
-    const supabase=await window.khunnanoAuth.ready;
-    const {data:{user}}=await supabase.auth.getUser();
-    if(!user)return null;
-    const {data,error}=await supabase.from("profiles").select("display_name,avatar_url").eq("user_id",user.id).maybeSingle();
-    if(error)throw error;
-    return data||{};
-  }catch(e){console.error("Profile load failed:",e);return null}
+
+function localProfile(){
+  try{return JSON.parse(localStorage.getItem(key)||"{}")}catch(e){return {}}
 }
-async function apply(){
-  const account=await getAccountProfile();
-  const p=account||{};
+function saveLocalProfile(p){
+  localStorage.setItem(key,JSON.stringify(p||{}));
+}
+function render(v){
+  preview.innerHTML="";avatarBtn.innerHTML="";
+  if(v){
+    let a=document.createElement("img");a.src=v;a.alt="รูปโปรไฟล์";preview.appendChild(a);
+    let b=document.createElement("img");b.src=v;b.alt="อวตาร";b.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:50%";avatarBtn.appendChild(b);
+  }else{
+    preview.textContent="👤";avatarBtn.textContent="👤";
+  }
+}
+function apply(){
+  const p=localProfile();
   nameInput.value=p.display_name||"";
   render(p.avatar_url||"");
-  let n=document.getElementById("khunnanoMenuName");if(n)n.textContent=p.display_name||"สมาชิก STICKER KHUNNANO";
+  const n=document.getElementById("khunnanoMenuName");
+  const em=document.getElementById("khunnanoMenuEmail");
+  if(n)n.textContent=p.display_name||"ผู้เยี่ยมชม";
+  if(em)em.textContent=p.display_name?"โปรไฟล์ลูกค้า":"ยังไม่ได้ตั้งโปรไฟล์";
 }
-async function openProfile(){
-  try{
-    const supabase=await window.khunnanoAuth.ready;
-    const {data:{user}}=await supabase.auth.getUser();
-    if(!user){
-      const b=document.getElementById("khunnanoTopLogin")||document.getElementById("khunnanoLoginBtn");
-      if(b)b.click();
-      return;
-    }
-  }catch(e){
-    console.error("Profile auth check failed:",e);
-    return;
-  }
-  pendingFile=null;fileInput.value="";status.textContent="กำลังโหลดโปรไฟล์...";photoStatus.textContent="";overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false");await apply();status.textContent="";
+function openProfile(){
+  pendingFile=null;
+  if(fileInput)fileInput.value="";
+  status.textContent="";
+  photoStatus.textContent="";
+  overlay.classList.add("open");
+  overlay.setAttribute("aria-hidden","false");
+  menu.classList.remove("open");
+  menuBtn.setAttribute("aria-expanded","false");
+  apply();
 }
-function closeProfile(){overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");pendingFile=null;if(fileInput)fileInput.value=""}
-menuBtn.addEventListener("click",e=>{e.stopPropagation();let o=!menu.classList.contains("open");menu.classList.toggle("open",o);menuBtn.setAttribute("aria-expanded",o?"true":"false")});
-avatarBtn.addEventListener("click",e=>{e.stopPropagation();openProfile()});
-if(profileBtn)profileBtn.addEventListener("click",openProfile);
-if(topLogin) topLogin.addEventListener("click",()=>{ const b=document.getElementById("khunnanoLoginBtn"); if(b) b.click(); else { const m=document.getElementById("khunnanoMenuLogin"); if(m) m.click(); } });
-document.addEventListener("click",e=>{if(!e.target.closest(".khunnano-member-tools")){menu.classList.remove("open");menuBtn.setAttribute("aria-expanded","false")}});
-closeBtn.addEventListener("click",closeProfile);overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfile()});
-pickBtn.addEventListener("click",()=>fileInput.click());
-fileInput.addEventListener("change",()=>{let f=fileInput.files&&fileInput.files[0];if(!f)return;if(!f.type.startsWith("image/")){photoStatus.textContent="กรุณาเลือกไฟล์รูปภาพครับ";pendingFile=null;return}if(f.size>5*1024*1024){photoStatus.textContent="รูปใหญ่เกินไปครับ (สูงสุด 5 MB)";pendingFile=null;return}pendingFile=f;let r=new FileReader();r.onload=()=>{render(r.result);photoStatus.textContent="เลือกรูปแล้ว ✓ (จะบันทึกเข้าบัญชีเมื่อกดบันทึก)"};r.readAsDataURL(f)});
-saveBtn.addEventListener("click",async()=>{
-  const n=nameInput.value.trim();if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}
-  status.textContent="กำลังบันทึก...";saveBtn.disabled=true;
-  try{
-    const supabase=await window.khunnanoAuth.ready;
-    const {data:{user}}=await supabase.auth.getUser();
-    if(!user){status.textContent="กรุณาเข้าสู่ระบบก่อนครับ";return}
-    let avatarUrl=null;
-    const current=await getAccountProfile();
-    avatarUrl=current&&current.avatar_url?current.avatar_url:null;
-    if(pendingFile){
-      const ext=(pendingFile.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-      const path=user.id+"/avatar-"+Date.now()+"."+ext;
-      const upload=await supabase.storage.from("avatars").upload(path,pendingFile,{contentType:pendingFile.type,upsert:false});
-      if(upload.error)throw upload.error;
-      const pub=supabase.storage.from("avatars").getPublicUrl(path);
-      avatarUrl=pub.data.publicUrl;
-    }
-    const {error}=await supabase.from("profiles").upsert({user_id:user.id,display_name:n,avatar_url:avatarUrl,updated_at:new Date().toISOString()});
-    if(error)throw error;
-    localStorage.removeItem(key);
-    pendingFile=null;
-    await apply();
-    status.textContent="บันทึกโปรไฟล์เข้าบัญชีแล้ว ✓";photoStatus.textContent="";
-    setTimeout(closeProfile,700);
-  }catch(e){console.error(e);status.textContent="บันทึกไม่สำเร็จ: "+(e.message||"เกิดข้อผิดพลาด");}
-  finally{saveBtn.disabled=false}
+function closeProfile(){
+  overlay.classList.remove("open");
+  overlay.setAttribute("aria-hidden","true");
+  pendingFile=null;
+  if(fileInput)fileInput.value="";
+}
+menuBtn.addEventListener("click",e=>{
+  e.stopPropagation();
+  const o=!menu.classList.contains("open");
+  menu.classList.toggle("open",o);
+  menuBtn.setAttribute("aria-expanded",o?"true":"false");
 });
-window.khunnanoProfile={get: getAccountProfile, refresh: apply};
+avatarBtn.addEventListener("click",e=>{e.stopPropagation();openProfile()});
+if(profileBtn){
+  profileBtn.style.display="block";
+  profileBtn.addEventListener("click",openProfile);
+}
+if(topLogin) topLogin.addEventListener("click",()=>{
+  const b=document.getElementById("khunnanoLoginBtn");
+  if(b)b.click();
+  else{
+    const m=document.getElementById("khunnanoMenuLogin");
+    if(m)m.click();
+  }
+});
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".khunnano-member-tools")){
+    menu.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded","false");
+  }
+});
+closeBtn.addEventListener("click",closeProfile);
+overlay.addEventListener("click",e=>{if(e.target===overlay)closeProfile()});
+pickBtn.addEventListener("click",()=>fileInput.click());
+
+fileInput.addEventListener("change",()=>{
+  const f=fileInput.files&&fileInput.files[0];
+  if(!f)return;
+  if(!f.type.startsWith("image/")){
+    photoStatus.textContent="กรุณาเลือกไฟล์รูปภาพครับ";pendingFile=null;return;
+  }
+  if(f.size>10*1024*1024){
+    photoStatus.textContent="รูปใหญ่เกินไปครับ (สูงสุด 10 MB)";pendingFile=null;return;
+  }
+  pendingFile=f;
+  const r=new FileReader();
+  r.onload=()=>{render(r.result);photoStatus.textContent="เลือกรูปแล้ว ✓"};
+  r.readAsDataURL(f);
+});
+
+saveBtn.addEventListener("click",async()=>{
+  const n=nameInput.value.trim();
+  if(!n){status.textContent="กรุณาใส่ชื่อที่แสดงก่อนครับ";return}
+  status.textContent="กำลังบันทึก...";
+  saveBtn.disabled=true;
+  try{
+    let avatarUrl=localProfile().avatar_url||"";
+    if(pendingFile){
+      avatarUrl=await new Promise((resolve,reject)=>{
+        const img=new Image();
+        const r=new FileReader();
+        r.onload=()=>{
+          img.onload=()=>{
+            const max=500;
+            const scale=Math.min(1,max/Math.max(img.width,img.height));
+            const c=document.createElement("canvas");
+            c.width=Math.max(1,Math.round(img.width*scale));
+            c.height=Math.max(1,Math.round(img.height*scale));
+            const ctx=c.getContext("2d");
+            ctx.drawImage(img,0,0,c.width,c.height);
+            resolve(c.toDataURL("image/jpeg",0.82));
+          };
+          img.onerror=reject;
+          img.src=r.result;
+        };
+        r.onerror=reject;
+        r.readAsDataURL(pendingFile);
+      });
+    }
+    saveLocalProfile({display_name:n,avatar_url:avatarUrl,updated_at:new Date().toISOString()});
+    pendingFile=null;
+    apply();
+    status.textContent="บันทึกโปรไฟล์แล้ว ✓";
+    photoStatus.textContent="";
+    setTimeout(closeProfile,700);
+  }catch(e){
+    console.error(e);
+    status.textContent="บันทึกไม่สำเร็จ กรุณาลองใหม่ครับ";
+  }finally{saveBtn.disabled=false}
+});
+window.khunnanoProfile={get:function(){return localProfile()},refresh:apply};
 apply();
 })();
+
 </script>
 
 <script>
@@ -1348,10 +1404,11 @@ apply();
         signIn.style.display = "block"; signUp.style.display = "block"; signOut.style.display = "none";
         userInfo.textContent = "";
         if (topLogin) topLogin.style.display = "block";
-        if (menuName) menuName.textContent = "ผู้เยี่ยมชม";
-        if (menuEmail) menuEmail.textContent = "ยังไม่ได้เข้าสู่ระบบ";
+        const guestProfile = window.khunnanoProfile ? window.khunnanoProfile.get() : {};
+        if (menuName) menuName.textContent = guestProfile.display_name || "ผู้เยี่ยมชม";
+        if (menuEmail) menuEmail.textContent = guestProfile.display_name ? "โปรไฟล์ลูกค้า" : "ยังไม่ได้ตั้งโปรไฟล์";
         if (menuLogin) menuLogin.style.display = "block";
-        if (menuProfile) menuProfile.style.display = "none";
+        if (menuProfile) menuProfile.style.display = "block";
         if (menuOrders) menuOrders.style.display = "none";
         if (menuAdmin) menuAdmin.style.display = "none";
         if (menuLogout) menuLogout.style.display = "none";
