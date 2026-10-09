@@ -20,6 +20,33 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 .field input,.field select,.field textarea{width:100%;box-sizing:border-box;border:1px solid #ddd1e5;border-radius:10px;padding:11px;font:inherit;background:#fff}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}#formStatus{font-size:12px;color:#9b3030;margin-top:10px;min-height:18px}
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+
+/* Rate management and order reports */
+.rate-order-section{border:1px solid #eadff0;border-radius:16px;padding:14px;margin:0 0 16px;background:#faf7fc}
+.rate-order-section h2{font-size:17px;margin:0 0 7px}
+.ro-help{font-size:12px;color:#75677e;line-height:1.55;margin:0 0 12px}
+.ro-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.ro-stat{background:#fff;border:1px solid #eadff0;border-radius:13px;padding:12px;min-width:0}
+.ro-stat .k{font-size:11px;color:#75677e}.ro-stat .v{font-size:20px;font-weight:850;margin-top:4px;overflow-wrap:anywhere}
+.ro-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ro-box{background:#fff;border:1px solid #eadff0;border-radius:14px;padding:12px;min-width:0}
+.ro-box h3{font-size:14px;margin:0 0 10px}
+.ro-box input,.ro-box select,.ro-box textarea{width:100%;box-sizing:border-box;border:1px solid #ddd1e5;border-radius:10px;padding:10px;font:inherit;background:#fff}
+.ro-field{display:flex;flex-direction:column;gap:6px;margin-bottom:9px}
+.ro-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ro-table-wrap{overflow:auto;border:1px solid #eadff0;border-radius:12px;background:#fff;margin-top:10px}
+.ro-table{width:100%;border-collapse:collapse;min-width:650px}
+.ro-table th,.ro-table td{text-align:left;padding:10px;border-bottom:1px solid #eee6f1;font-size:12px;vertical-align:middle}
+.ro-table th{background:#faf7fc}
+.ro-filter{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:12px 0}
+.ro-filter .ro-field{min-width:150px;margin:0}
+.ro-msg{font-size:12px;min-height:18px;margin-top:8px;color:#7b3fc2}
+.ro-delete{background:#f8e2e2;color:#9b3030;padding:6px 8px;font-size:11px}
+.ro-inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ro-inline input[type=checkbox]{width:auto}
+@media(max-width:760px){.ro-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ro-cols{grid-template-columns:1fr}}
+@media(max-width:420px){.ro-stat .v{font-size:17px}.ro-two{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -27,6 +54,92 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid #eee6f1;font-size:13p
 <h1>🛠️ แผงควบคุมแอดมิน</h1><div class="sub">STICKER KHUNNANO</div>
 <div id="status" class="status">กำลังตรวจสอบสิทธิ์...</div>
 <div id="panel" style="display:none">
+
+<div class="rate-order-section" id="rateOrderManagement">
+  <h2>💸 ระบบเรทราคาและบันทึกออเดอร์</h2>
+  <p class="ro-help">จัดการเรทราคาลูกค้าทั่วไป/ตัวแทน เพิ่มจำนวนเหรียญเองสำหรับโปรโมชัน และบันทึกประเภทสินค้าเพื่อดูรายงานรายเดือน ราคาจะถูกบันทึกเป็นภาพ ณ วันที่ขาย จึงไม่เปลี่ยนตามเรทในอนาคต</p>
+
+  <div class="ro-box" style="margin-bottom:14px">
+    <h3>⚙️ จัดการเรทราคา</h3>
+    <div class="ro-help">แก้ราคาแล้วกดบันทึกเรท รายการที่บันทึกเป็นออเดอร์ไปแล้วจะไม่ถูกแก้ตาม</div>
+    <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>จำนวนเหรียญ</th><th>ราคาลูกค้าทั่วไป (บาท)</th><th>ราคาตัวแทน (บาท)</th><th>ต้นทุน</th><th>ใช้งาน</th><th>จัดการ</th></tr></thead><tbody id="rateRows"><tr><td colspan="6">กำลังโหลดเรทราคา...</td></tr></tbody></table></div>
+    <form id="rateForm" style="margin-top:12px">
+      <div class="ro-two">
+        <div class="ro-field"><label for="rateCoins">จำนวนเหรียญ</label><input id="rateCoins" type="number" min="1" step="1" required placeholder="เช่น 88"></div>
+        <div class="ro-field"><label for="rateCustomerPrice">ราคาลูกค้าทั่วไป (บาท)</label><input id="rateCustomerPrice" type="number" min="0" step="0.01" required placeholder="เช่น 35"></div>
+        <div class="ro-field"><label for="rateAgentPrice">ราคาตัวแทน (บาท)</label><input id="rateAgentPrice" type="number" min="0" step="0.01" required placeholder="เช่น 30"></div>
+        
+      </div>
+      <div class="ro-inline"><button class="primary" id="saveRate" type="submit">＋ เพิ่ม / บันทึกเรท</button><button class="back" id="cancelRateEdit" type="button" style="display:none">ยกเลิกแก้ไข</button></div>
+      <div class="ro-msg" id="rateStatus"></div>
+    </form>
+  </div>
+
+  <div class="ro-box" style="margin-bottom:14px">
+    <h3>🪙 บันทึกเติมเหรียญ / ต้นทุนสต็อก</h3>
+    <p class="ro-help">เพิ่มรายการเติมเหรียญ แก้ไขข้อมูลย้อนหลังได้ และลบได้เมื่อยืนยัน รายการนี้ใช้ติดตามต้นทุนการซื้อเหรียญ ไม่ได้ตัดสต็อกอัตโนมัติจนกว่าจะตั้งวิธีจับคู่ต้นทุนให้ชัดเจน</p>
+    <form id="topupForm">
+      <div class="ro-two">
+        <div class="ro-field"><label for="topupDate">วันที่เติม *</label><input id="topupDate" type="date" required></div>
+        <div class="ro-field"><label for="topupCoins">จำนวนเหรียญที่เติม *</label><input id="topupCoins" type="number" min="1" step="1" required placeholder="เช่น 10000"></div>
+        <div class="ro-field"><label for="topupCost">ต้นทุนรวม (บาท) *</label><input id="topupCost" type="number" min="0" step="0.01" required placeholder="เช่น 3000"></div>
+        <div class="ro-field"><label for="topupNote">หมายเหตุ</label><input id="topupNote" maxlength="300" placeholder="เช่น โปรโมชันหรือเลขอ้างอิง"></div>
+      </div>
+      <div class="ro-help" id="topupUnitCost">ต้นทุนต่อเหรียญ: —</div>
+      <div class="ro-inline"><button class="primary" id="saveTopup" type="submit">＋ บันทึกการเติมเหรียญ</button><button class="back" id="cancelTopupEdit" type="button" style="display:none">ยกเลิกแก้ไข</button></div>
+      <div class="ro-msg" id="topupStatus"></div>
+    </form>
+    <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>วันที่</th><th>จำนวนเหรียญ</th><th>ต้นทุนรวม</th><th>ต้นทุน/เหรียญ</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead><tbody id="topupRows"><tr><td colspan="6">กำลังโหลด...</td></tr></tbody></table></div>
+  </div>
+
+  <div class="ro-cols">
+    <form class="ro-box" id="orderForm">
+      <h3>🧾 บันทึกออเดอร์</h3>
+      <div class="ro-two">
+        <div class="ro-field"><label for="orderDate">วันที่ขาย *</label><input id="orderDate" type="date" required></div>
+        <div class="ro-field"><label for="orderBuyerType">ประเภทผู้ซื้อ *</label><select id="orderBuyerType" required><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div>
+      </div>
+      <div class="ro-field"><label for="orderProductType">ประเภทสินค้า *</label><select id="orderProductType" required><option value="sticker">สติกเกอร์ LINE</option><option value="theme">ธีม</option><option value="emoji">อีโมจิ</option><option value="melody">เมโลดี้</option></select></div>
+      <div class="ro-field"><label for="orderProductName">ชื่อสินค้า / รายละเอียด *</label><input id="orderProductName" required maxlength="200" placeholder="เช่น ธีมแมว หรือโปรโมชัน LINE"></div>
+      <div class="ro-field"><label for="orderRateSelect">เรทราคามาตรฐาน</label><select id="orderRateSelect"><option value="">กำลังโหลดเรท...</option></select></div>
+      <div class="ro-inline" style="margin-bottom:10px"><label><input id="orderCustomCoins" type="checkbox"> กรอกจำนวนเหรียญเอง (โปรโมชัน/จำนวนพิเศษ)</label></div>
+      <div class="ro-two">
+        <div class="ro-field"><label for="orderCoins">จำนวนเหรียญ *</label><input id="orderCoins" type="number" min="1" step="1" required readonly></div>
+        <div class="ro-field"><label for="orderQuantity">จำนวนออเดอร์/ชุด *</label><input id="orderQuantity" type="number" min="1" step="1" value="1" required></div>
+      </div>
+      <div class="ro-two">
+        <div class="ro-field"><label for="orderUnitPrice">ราคาขายต่อชุด (บาท) *</label><input id="orderUnitPrice" type="number" min="0" step="0.01" required value="0"></div>
+        <div class="ro-field"><label for="orderUnitCost">ต้นทุนต่อชุด (บาท)</label><input id="orderUnitCost" type="number" min="0" step="0.01" placeholder="กรอกเพื่อคำนวณกำไร"></div>
+      </div>
+      <div class="ro-two">
+        <div class="ro-field"><label for="orderCustomerName">ชื่อลูกค้า</label><input id="orderCustomerName" maxlength="120" placeholder="ไม่บังคับ"></div>
+        <div class="ro-field"><label for="orderAgentName">ชื่อตัวแทน</label><input id="orderAgentName" maxlength="120" placeholder="ถ้ามี"></div>
+      </div>
+      <div class="ro-field"><label for="orderNotes">หมายเหตุ / เลขออเดอร์</label><textarea id="orderNotes" rows="2" maxlength="500"></textarea></div>
+      <div class="ro-help" id="orderCalculation">ยอดขายรวม: ฿0 · กำไร: ยังไม่คำนวณ (กรอกต้นทุน)</div>
+      <div class="ro-inline"><button class="primary" id="saveOrder" type="submit">＋ บันทึกออเดอร์</button><button class="back" id="cancelOrderEdit" type="button" style="display:none">ยกเลิกแก้ไข</button></div>
+      <div class="ro-msg" id="orderStatus"></div>
+    </form>
+    <div class="ro-box">
+      <h3>📅 รายงานประจำเดือน</h3>
+      <div class="ro-field"><label for="reportMonth">เลือกเดือน</label><input id="reportMonth" type="month"></div>
+      <button class="primary" id="refreshReport" type="button">🔄 โหลดรายงาน</button>
+      <div class="ro-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+        <div class="ro-stat"><div class="k">ยอดขายรวม</div><div class="v" id="reportRevenue">฿0</div></div>
+        <div class="ro-stat"><div class="k">จำนวนออเดอร์</div><div class="v" id="reportOrders">0</div></div>
+        <div class="ro-stat"><div class="k">เหรียญรวม</div><div class="v" id="reportCoins">0</div></div>
+        <div class="ro-stat"><div class="k">กำไรที่มีต้นทุน</div><div class="v" id="reportProfit">—</div></div>
+      </div>
+      <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>ประเภทสินค้า</th><th>จำนวนออเดอร์</th><th>จำนวนชุด</th><th>ยอดขาย</th></tr></thead><tbody id="reportCategoryRows"><tr><td colspan="4">กำลังโหลด...</td></tr></tbody></table></div>
+      <p class="ro-help" style="margin-top:10px">กำไรจะสรุปเฉพาะออเดอร์ที่มีต้นทุนบันทึกไว้เท่านั้น</p>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;font-weight:800">📚 ประวัติออเดอร์</div>
+  <div class="ro-filter"><div class="ro-field"><label for="historyCategory">กรองประเภทสินค้า</label><select id="historyCategory"><option value="">ทุกประเภท</option><option value="sticker">สติกเกอร์ LINE</option><option value="theme">ธีม</option><option value="emoji">อีโมจิ</option><option value="melody">เมโลดี้</option></select></div><div class="ro-field"><label for="historyBuyer">กรองผู้ซื้อ</label><select id="historyBuyer"><option value="">ทุกประเภทผู้ซื้อ</option><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div><button class="primary" id="filterHistory" type="button">กรองรายการ</button></div>
+  <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า / เหรียญ</th><th>ผู้ซื้อ</th><th>จำนวน</th><th>ราคา ณ วันขาย</th><th>ยอดขาย</th><th>กำไร</th><th>จัดการ</th></tr></thead><tbody id="orderRows"><tr><td colspan="9">กำลังโหลด...</td></tr></tbody></table></div>
+</div>
+
 <div class="store-control" style="border:1px solid #eadff0;border-radius:16px;padding:14px;margin-bottom:16px;background:#faf7fc">
   <div style="font-weight:800;margin-bottom:8px">🏪 สถานะร้าน</div>
   <div id="storeStatus" style="font-size:13px;margin-bottom:10px">กำลังตรวจสอบ...</div>
@@ -101,6 +214,149 @@ const overlay=document.getElementById('productOverlay'),form=document.getElement
 const mainImageFile=document.getElementById('productImageFile'),previewFiles=document.getElementById('productPreviewFiles'),mainImageHint=document.getElementById('mainImageHint'),previewImageHint=document.getElementById('previewImageHint');
 let supabase=null,products=[],editingPreviewImages=[];
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);}
+
+const categoryNames={sticker:'สติกเกอร์ LINE',theme:'ธีม',emoji:'อีโมจิ',melody:'เมโลดี้'};
+const buyerNames={customer:'ลูกค้าทั่วไป',agent:'ตัวแทนจำหน่าย'};
+const rateRows=document.getElementById('rateRows'),rateForm=document.getElementById('rateForm'),rateStatus=document.getElementById('rateStatus');
+const orderForm=document.getElementById('orderForm'),orderStatus=document.getElementById('orderStatus');
+const orderRateSelect=document.getElementById('orderRateSelect'),orderCustomCoins=document.getElementById('orderCustomCoins');
+let rates=[],orders=[],topups=[],editingRateCoins=null,editingOrderId=null,editingTopupId=null;
+const moneyRO=n=>'฿'+Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2});
+const numRO=n=>Number(n||0).toLocaleString('th-TH');
+const localDateRO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const localMonthRO=()=>localDateRO().slice(0,7);
+document.getElementById('orderDate').value=localDateRO();
+document.getElementById('reportMonth').value=localMonthRO();
+document.getElementById('topupDate').value=localDateRO();
+
+function renderRateRows(){
+ if(!rates.length){rateRows.innerHTML='<tr><td colspan="6">ยังไม่มีเรทราคา</td></tr>';return;}
+ rateRows.innerHTML=rates.map(r=>'<tr><td>'+numRO(r.coins)+' เหรียญ</td><td>'+moneyRO(r.customer_price)+'</td><td>'+moneyRO(r.agent_price)+'</td><td>'+'กรอกตอนขาย'+'</td><td>'+(r.is_active?'ใช้งาน':'ปิด')+'</td><td class="actions"><button type="button" class="back" data-rate-edit="'+r.coins+'">แก้ไข</button><button type="button" class="'+(r.is_active?'danger':'primary')+'" data-rate-toggle="'+r.coins+'">'+(r.is_active?'ปิด':'เปิด')+'</button></td></tr>').join('');
+}
+function renderRateSelect(){
+ const old=orderRateSelect.value;
+ const active=rates.filter(r=>r.is_active);
+ orderRateSelect.innerHTML='<option value="">เลือกจำนวนเหรียญมาตรฐาน</option>'+active.map(r=>'<option value="'+r.coins+'">'+numRO(r.coins)+' เหรียญ — ลูกค้า '+moneyRO(r.customer_price)+' / ตัวแทน '+moneyRO(r.agent_price)+'</option>').join('');
+ if(active.some(r=>String(r.coins)===old))orderRateSelect.value=old;
+}
+async function loadRates(){
+ rateRows.innerHTML='<tr><td colspan="6">กำลังโหลด...</td></tr>';
+ const {data,error}=await supabase.from('price_rates').select('customer_type,coins,price,is_active,updated_at').order('coins',{ascending:true});
+ if(error){rateRows.innerHTML='<tr><td colspan="6">โหลดเรทไม่สำเร็จ: '+esc(error.message)+'</td></tr>';rateStatus.textContent='โหลดตารางเรทราคาไม่สำเร็จ';return;}
+ const grouped=new Map();
+ (data||[]).forEach(row=>{const key=Number(row.coins);if(!grouped.has(key))grouped.set(key,{coins:key,customer_price:null,agent_price:null,cost_price:null,is_active:true});const g=grouped.get(key);if(row.customer_type==='customer')g.customer_price=Number(row.price);if(row.customer_type==='agent')g.agent_price=Number(row.price);g.is_active=g.is_active&&row.is_active!==false;});
+ rates=[...grouped.values()].sort((a,b)=>a.coins-b.coins);renderRateRows();renderRateSelect();
+}
+function resetRateForm(){editingRateCoins=null;rateForm.reset();document.getElementById('rateCoins').disabled=false;document.getElementById('cancelRateEdit').style.display='none';document.getElementById('saveRate').textContent='＋ เพิ่ม / บันทึกเรท';}
+rateRows.addEventListener('click',async e=>{
+ const edit=e.target.closest('[data-rate-edit]'),toggle=e.target.closest('[data-rate-toggle]');
+ if(edit){const r=rates.find(x=>String(x.coins)===edit.dataset.rateEdit);if(!r)return;editingRateCoins=r.coins;document.getElementById('rateCoins').value=r.coins;document.getElementById('rateCoins').disabled=false;document.getElementById('rateCustomerPrice').value=r.customer_price??'';document.getElementById('rateAgentPrice').value=r.agent_price??'';document.getElementById('cancelRateEdit').style.display='inline-block';document.getElementById('saveRate').textContent='บันทึกการแก้ไข';rateStatus.textContent='กำลังแก้เรท '+r.coins+' เหรียญ';return;}
+ if(toggle){const r=rates.find(x=>String(x.coins)===toggle.dataset.rateToggle);if(!r)return;const next=!r.is_active;const {error}=await supabase.from('price_rates').update({is_active:next,updated_at:new Date().toISOString()}).eq('coins',r.coins);if(error){rateStatus.textContent='เปลี่ยนสถานะไม่สำเร็จ: '+error.message;return;}await loadRates();}
+});
+document.getElementById('cancelRateEdit').addEventListener('click',()=>{document.getElementById('rateCoins').disabled=false;resetRateForm();rateStatus.textContent='';});
+rateForm.addEventListener('submit',async e=>{
+ e.preventDefault();rateStatus.textContent='กำลังบันทึก...';document.getElementById('saveRate').disabled=true;
+ try{
+  const coins=Number(document.getElementById('rateCoins').value),customer=Number(document.getElementById('rateCustomerPrice').value),agent=Number(document.getElementById('rateAgentPrice').value);
+  if(!Number.isInteger(coins)||coins<1||!Number.isFinite(customer)||customer<0||!Number.isFinite(agent)||agent<0)throw new Error('ตรวจสอบจำนวนเหรียญและราคาอีกครั้ง');
+  const payload=[{customer_type:'customer',coins,price:customer,is_active:true,updated_at:new Date().toISOString()},{customer_type:'agent',coins,price:agent,is_active:true,updated_at:new Date().toISOString()}];
+  if(editingRateCoins!==null && coins!==editingRateCoins && rates.some(r=>r.coins===coins))throw new Error('มีเรทจำนวนเหรียญนี้อยู่แล้ว');
+  if(editingRateCoins!==null && coins!==editingRateCoins){const {error:delErr}=await supabase.from('price_rates').delete().eq('coins',editingRateCoins);if(delErr)throw delErr;}
+  const result=await supabase.from('price_rates').upsert(payload,{onConflict:'customer_type,coins'});
+  if(result.error)throw result.error;
+  rateStatus.textContent='บันทึกเรทราคาแล้ว';document.getElementById('rateCoins').disabled=false;resetRateForm();await loadRates();updateOrderCalc();
+ }catch(err){rateStatus.textContent='บันทึกเรทไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}
+ document.getElementById('saveRate').disabled=false;
+});
+function selectedRate(){return rates.find(r=>String(r.coins)===orderRateSelect.value)||null;}
+function updateOrderCalc(){
+ const qty=Number(document.getElementById('orderQuantity').value||1),price=Number(document.getElementById('orderUnitPrice').value||0),costText=document.getElementById('orderUnitCost').value;
+ const revenue=qty*price,hasCost=costText!==''&&Number.isFinite(Number(costText)),profit=hasCost?qty*(price-Number(costText)):null;
+ document.getElementById('orderCalculation').textContent='ยอดขายรวม: '+moneyRO(revenue)+' · '+(profit===null?'กำไร: ยังไม่คำนวณ (กรอกต้นทุน)':('กำไรโดยประมาณ: '+moneyRO(profit)));
+}
+function applySelectedRate(){
+ const r=selectedRate();if(!r||orderCustomCoins.checked)return;
+ document.getElementById('orderCoins').value=r.coins;
+ const buyer=document.getElementById('orderBuyerType').value;
+ document.getElementById('orderUnitPrice').value=buyer==='agent'?r.agent_price:r.customer_price;
+ document.getElementById('orderUnitCost').value=r.cost_price==null?'':r.cost_price;
+ updateOrderCalc();
+}
+orderRateSelect.addEventListener('change',()=>{if(orderRateSelect.value){orderCustomCoins.checked=false;document.getElementById('orderCoins').readOnly=true;applySelectedRate();}else{document.getElementById('orderCoins').readOnly=!orderCustomCoins.checked;}});
+orderCustomCoins.addEventListener('change',()=>{
+ const custom=orderCustomCoins.checked;
+ document.getElementById('orderCoins').readOnly=!custom;
+ if(custom){orderRateSelect.value='';document.getElementById('orderCoins').readOnly=false;document.getElementById('orderUnitPrice').value='';document.getElementById('orderUnitCost').value='';}
+ else if(orderRateSelect.value){document.getElementById('orderCoins').readOnly=true;applySelectedRate();}else{document.getElementById('orderCoins').readOnly=true;document.getElementById('orderCoins').value='';}
+ updateOrderCalc();
+});
+document.getElementById('orderBuyerType').addEventListener('change',applySelectedRate);
+['orderQuantity','orderUnitPrice','orderUnitCost'].forEach(id=>document.getElementById(id).addEventListener('input',updateOrderCalc));
+async function loadOrders(){
+ const {data,error}=await supabase.from('order_records').select('id,order_date,buyer_type,product_type,product_name,coins,quantity,unit_price,cost_price,total_amount,total_cost,profit_amount,customer_name,agent_name,notes,created_at').order('order_date',{ascending:false}).order('id',{ascending:false}).limit(1000);
+ if(error){orders=[];document.getElementById('orderRows').innerHTML='<tr><td colspan="9">โหลดออเดอร์ไม่สำเร็จ: '+esc(error.message)+' — ตรวจสอบว่ารัน SQL ตั้งค่าระบบแล้ว</td></tr>';document.getElementById('reportCategoryRows').innerHTML='<tr><td colspan="4">ยังโหลดรายงานไม่ได้</td></tr>';return;}
+ orders=data||[];renderOrders();renderReport();
+}
+function filteredHistory(){
+ const cat=document.getElementById('historyCategory').value,buyer=document.getElementById('historyBuyer').value;
+ return orders.filter(o=>(!cat||o.product_type===cat)&&(!buyer||o.buyer_type===buyer));
+}
+function renderOrders(){
+ const list=filteredHistory();
+ document.getElementById('orderRows').innerHTML=list.length?list.slice(0,300).map(o=>'<tr><td>'+esc(o.order_date)+'</td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o.cost_price==null?'—':moneyRO(o.cost_price))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o.profit_amount==null?'—':moneyRO(o.profit_amount))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
+}
+function renderReport(){
+ const month=document.getElementById('reportMonth').value;
+ const list=orders.filter(o=>String(o.order_date||'').slice(0,7)===month);
+ const revenue=list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0);
+ const known=list.filter(o=>o.total_cost!=null),profit=known.reduce((s,o)=>s+Number(o.profit_amount||0),0);
+ document.getElementById('reportRevenue').textContent=moneyRO(revenue);
+ document.getElementById('reportOrders').textContent=numRO(list.length);
+ document.getElementById('reportCoins').textContent=numRO(coins);
+ document.getElementById('reportProfit').textContent=known.length?moneyRO(profit):'—';
+ document.getElementById('reportCategoryRows').innerHTML=Object.entries(categoryNames).map(([key,label])=>{
+  const arr=list.filter(o=>o.product_type===key);
+  return '<tr><td>'+esc(label)+'</td><td>'+numRO(arr.length)+'</td><td>'+numRO(arr.reduce((s,o)=>s+Number(o.quantity||0),0))+'</td><td>'+moneyRO(arr.reduce((s,o)=>s+Number(o.total_amount||0),0))+'</td></tr>';
+ }).join('');
+}
+orderForm.addEventListener('submit',async e=>{
+ e.preventDefault();const save=document.getElementById('saveOrder');save.disabled=true;orderStatus.textContent='กำลังบันทึก...';
+ try{
+  const qty=Number(document.getElementById('orderQuantity').value),coins=Number(document.getElementById('orderCoins').value),price=Number(document.getElementById('orderUnitPrice').value),costText=document.getElementById('orderUnitCost').value;
+  if(!Number.isInteger(qty)||qty<1||!Number.isInteger(coins)||coins<1||!Number.isFinite(price)||price<0)throw new Error('ตรวจสอบจำนวนชุด จำนวนเหรียญ และราคาขาย');
+  if(costText!==''&&(!Number.isFinite(Number(costText))||Number(costText)<0))throw new Error('ต้นทุนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
+  const cost=costText===''?null:Number(costText),total=Math.round(qty*price*100)/100,totalCost=cost===null?null:Math.round(qty*cost*100)/100;
+  const rate=selectedRate(),payload={order_date:document.getElementById('orderDate').value,buyer_type:document.getElementById('orderBuyerType').value,product_type:document.getElementById('orderProductType').value,product_name:document.getElementById('orderProductName').value.trim(),coins,quantity:qty,unit_price:price,cost_price:cost,total_amount:total,total_cost:totalCost,profit_amount:totalCost===null?null:Math.round((total-totalCost)*100)/100,customer_name:document.getElementById('orderCustomerName').value.trim()||null,agent_name:document.getElementById('orderAgentName').value.trim()||null,notes:document.getElementById('orderNotes').value.trim()||null,rate_coins:rate&&!orderCustomCoins.checked?rate.coins:null,rate_price:rate&&!orderCustomCoins.checked?(document.getElementById('orderBuyerType').value==='agent'?rate.agent_price:rate.customer_price):null};
+  let result;
+  if(editingOrderId!==null){result=await supabase.from('order_records').update(payload).eq('id',editingOrderId);}else{result=await supabase.from('order_records').insert(payload);}
+  if(result.error)throw result.error;
+  orderStatus.textContent=editingOrderId!==null?'แก้ไขออเดอร์เรียบร้อยแล้ว':'บันทึกออเดอร์เรียบร้อยแล้ว';editingOrderId=null;document.getElementById('saveOrder').textContent='＋ บันทึกออเดอร์';document.getElementById('cancelOrderEdit').style.display='none';orderForm.reset();document.getElementById('orderDate').value=localDateRO();document.getElementById('orderQuantity').value=1;document.getElementById('orderUnitPrice').value=0;document.getElementById('orderCoins').readOnly=true;orderCustomCoins.checked=false;orderRateSelect.value='';document.getElementById('orderUnitCost').value='';updateOrderCalc();await loadOrders();
+ }catch(err){orderStatus.textContent='บันทึกออเดอร์ไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}
+ save.disabled=false;
+});
+document.getElementById('cancelOrderEdit').addEventListener('click',()=>{editingOrderId=null;orderForm.reset();document.getElementById('orderDate').value=localDateRO();document.getElementById('orderQuantity').value=1;document.getElementById('orderUnitPrice').value=0;document.getElementById('orderCoins').readOnly=true;document.getElementById('orderCoins').value='';document.getElementById('orderUnitCost').value='';orderCustomCoins.checked=false;orderRateSelect.value='';document.getElementById('saveOrder').textContent='＋ บันทึกออเดอร์';document.getElementById('cancelOrderEdit').style.display='none';orderStatus.textContent='ยกเลิกการแก้ไขแล้ว';updateOrderCalc();});
+document.getElementById('refreshReport').addEventListener('click',renderReport);
+document.getElementById('reportMonth').addEventListener('change',renderReport);
+document.getElementById('filterHistory').addEventListener('click',renderOrders);
+document.getElementById('orderRows').addEventListener('click',async e=>{
+ const edit=e.target.closest('[data-order-edit]');
+ if(edit){const o=orders.find(x=>String(x.id)===edit.dataset.orderEdit);if(!o)return;editingOrderId=o.id;
+  document.getElementById('orderDate').value=o.order_date;document.getElementById('orderBuyerType').value=o.buyer_type;document.getElementById('orderProductType').value=o.product_type;document.getElementById('orderProductName').value=o.product_name;document.getElementById('orderCoins').value=o.coins;document.getElementById('orderCoins').readOnly=false;document.getElementById('orderQuantity').value=o.quantity;document.getElementById('orderUnitPrice').value=o.unit_price;document.getElementById('orderUnitCost').value=o.cost_price??'';document.getElementById('orderCustomerName').value=o.customer_name||'';document.getElementById('orderAgentName').value=o.agent_name||'';document.getElementById('orderNotes').value=o.notes||'';document.getElementById('orderRateSelect').value='';document.getElementById('orderCustomCoins').checked=true;document.getElementById('saveOrder').textContent='บันทึกการแก้ไขออเดอร์';document.getElementById('cancelOrderEdit').style.display='inline-block';orderStatus.textContent='กำลังแก้ไขออเดอร์ #'+o.id+' — ราคาที่กรอกจะถูกบันทึกเฉพาะออเดอร์นี้';updateOrderCalc();document.getElementById('orderForm').scrollIntoView({behavior:'smooth',block:'start'});return;}
+ const b=e.target.closest('[data-order-delete]');if(!b)return;if(!confirm('ต้องการลบออเดอร์นี้หรือไม่? การลบจะมีผลกับรายงานด้วย'))return;
+ const {error}=await supabase.from('order_records').delete().eq('id',b.dataset.orderDelete);if(error){alert('ลบออเดอร์ไม่สำเร็จ: '+error.message);return;}await loadOrders();
+});
+
+const topupForm=document.getElementById('topupForm'),topupRows=document.getElementById('topupRows'),topupStatus=document.getElementById('topupStatus');
+function updateTopupUnitCost(){const c=Number(document.getElementById('topupCoins').value||0),cost=Number(document.getElementById('topupCost').value||0);document.getElementById('topupUnitCost').textContent='ต้นทุนต่อเหรียญ: '+(c>0?moneyRO(cost/c):'—');}
+['topupCoins','topupCost'].forEach(id=>document.getElementById(id).addEventListener('input',updateTopupUnitCost));
+function resetTopupForm(){editingTopupId=null;topupForm.reset();document.getElementById('topupDate').value=localDateRO();document.getElementById('saveTopup').textContent='＋ บันทึกการเติมเหรียญ';document.getElementById('cancelTopupEdit').style.display='none';updateTopupUnitCost();}
+async function loadTopups(){const {data,error}=await supabase.from('coin_topups').select('id,topup_date,coins_received,amount_paid,notes,created_at').order('topup_date',{ascending:false}).order('id',{ascending:false}).limit(1000);if(error){topupRows.innerHTML='<tr><td colspan="6">โหลดประวัติเติมเหรียญไม่สำเร็จ: '+esc(error.message)+' — ตรวจสอบว่ารัน SQL เวอร์ชันล่าสุดแล้ว</td></tr>';return;}topups=data||[];renderTopups();}
+function renderTopups(){topupRows.innerHTML=topups.length?topups.map(t=>'<tr><td>'+esc(t.topup_date)+'</td><td>'+numRO(t.coins_received)+'</td><td>'+moneyRO(t.amount_paid)+'</td><td>'+moneyRO(Number(t.amount_paid)/Number(t.coins_received))+'</td><td>'+esc(t.notes||'—')+'</td><td class="actions"><button type="button" class="back" data-topup-edit="'+esc(t.id)+'">แก้ไข</button><button type="button" class="danger" data-topup-delete="'+esc(t.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">ยังไม่มีประวัติเติมเหรียญ</td></tr>'; }
+topupForm.addEventListener('submit',async e=>{e.preventDefault();const save=document.getElementById('saveTopup');save.disabled=true;topupStatus.textContent='กำลังบันทึก...';try{const coins=Number(document.getElementById('topupCoins').value),cost=Number(document.getElementById('topupCost').value);if(!Number.isInteger(coins)||coins<1||!Number.isFinite(cost)||cost<0)throw new Error('ตรวจสอบจำนวนเหรียญและต้นทุน');const payload={topup_date:document.getElementById('topupDate').value,coins_received:coins,amount_paid:cost,notes:document.getElementById('topupNote').value.trim()||null};const result=editingTopupId!==null?await supabase.from('coin_topups').update(payload).eq('id',editingTopupId):await supabase.from('coin_topups').insert(payload);if(result.error)throw result.error;topupStatus.textContent=editingTopupId!==null?'แก้ไขรายการเติมเหรียญแล้ว':'บันทึกรายการเติมเหรียญแล้ว';resetTopupForm();await loadTopups();}catch(err){topupStatus.textContent='บันทึกไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}save.disabled=false;});
+topupRows.addEventListener('click',async e=>{const edit=e.target.closest('[data-topup-edit]'),del=e.target.closest('[data-topup-delete]');if(edit){const t=topups.find(x=>String(x.id)===edit.dataset.topupEdit);if(!t)return;editingTopupId=t.id;document.getElementById('topupDate').value=t.topup_date;document.getElementById('topupCoins').value=t.coins_received;document.getElementById('topupCost').value=t.amount_paid;document.getElementById('topupNote').value=t.notes||'';document.getElementById('saveTopup').textContent='บันทึกการแก้ไข';document.getElementById('cancelTopupEdit').style.display='inline-block';topupStatus.textContent='กำลังแก้ไขรายการเติมเหรียญ #'+t.id;updateTopupUnitCost();topupForm.scrollIntoView({behavior:'smooth',block:'start'});return;}if(del){if(!confirm('ต้องการลบรายการเติมเหรียญนี้หรือไม่?'))return;const {error}=await supabase.from('coin_topups').delete().eq('id',del.dataset.topupDelete);if(error){alert('ลบรายการไม่สำเร็จ: '+error.message);return;}await loadTopups();}});
+document.getElementById('cancelTopupEdit').addEventListener('click',()=>{resetTopupForm();topupStatus.textContent='ยกเลิกการแก้ไขแล้ว';});
+async function initRateOrders(){await loadRates();await loadOrders();await loadTopups();if(rates.length===0)rateStatus.textContent='ตั้งค่าตารางแล้ว แต่ยังไม่มีเรทเริ่มต้น';}
+
 function openForm(p){
 form.reset();formStatus.textContent='';editingPreviewImages=Array.isArray(p?.preview_images)?p.preview_images:[];
 document.getElementById('productId').value=p?.id||'';
@@ -262,7 +518,7 @@ supabase=await window.khunnanoAuth.ready;
 const {data:{user},error:userError}=await supabase.auth.getUser();if(userError||!user){location.href='/?login=required';return;}
 const {data:roleRow,error:roleError}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle();
 if(roleError||!roleRow||roleRow.role!=='admin'){status.textContent='บัญชีนี้ไม่มีสิทธิ์เข้าแผงควบคุมแอดมินครับ';setTimeout(()=>location.href='/',1200);return;}
-status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadStoreStatus();await loadAnnouncement();await loadProducts();
+status.textContent='เข้าสู่ระบบในสิทธิ์แอดมินแล้ว: '+(user.email||'');panel.style.display='block';await loadStoreStatus();await loadAnnouncement();await loadProducts();await initRateOrders();
 document.getElementById('logout').addEventListener('click',async()=>{await window.khunnanoLogin.signOut();location.href='/';});
 }catch(e){console.error(e);status.textContent='ตรวจสอบสิทธิ์ไม่สำเร็จครับ';}
 })();
