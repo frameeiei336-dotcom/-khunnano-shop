@@ -354,33 +354,65 @@ async function loadXlsxLibrary(){
   document.head.appendChild(script);
  });
 }
+function reportStatus(message,isError=false){
+ const el=document.getElementById('reportDownloadStatus');
+ if(el){el.textContent=message;el.style.color=isError?'#b42318':'#166534';el.style.fontWeight='600';el.style.padding='8px 0';}
+}
+function downloadBlobRO(blob,filename){
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+function escapeCsvRO(v){const s=String(v??'');return '"'+s.replace(/"/g,'""')+'"';}
+function downloadExcelFallbackRO(data){
+ // Excel-compatible HTML workbook fallback when the XLSX library/CDN is unavailable.
+ const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
+ const category=[['ประเภทสินค้า','จำนวนออเดอร์','จำนวนชุด','ยอดขายรวม (บาท)'],...Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return [label,arr.length,arr.reduce((n,o)=>n+Number(o.quantity||0),0),arr.reduce((n,o)=>n+Number(o.total_amount||0),0)];})];
+ const table=(rows)=>'<table border="1"><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ const html='<html><head><meta charset="utf-8"></head><body><h2>สรุป</h2>'+table(summary)+'<h2>รายการขาย</h2>'+table([data.headers,...data.rows])+'<h2>แยกประเภท</h2>'+table(category)+'</body></html>';
+ downloadBlobRO(new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8;'}),'sticker-khunnano-report-'+data.month+'.xls');
+}
 document.getElementById('downloadReportExcel').addEventListener('click',async()=>{
- const data=reportData();if(!data)return;
- const button=document.getElementById('downloadReportExcel'),msg=document.getElementById('reportDownloadStatus');
- button.disabled=true;msg.textContent='กำลังเตรียมไฟล์ Excel...';
+ const button=document.getElementById('downloadReportExcel');
  try{
-  const XLSX=await loadXlsxLibrary();
-  const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
-  const wb=XLSX.utils.book_new();
-  const wsSummary=XLSX.utils.aoa_to_sheet(summary);XLSX.utils.book_append_sheet(wb,wsSummary,'สรุป');
-  const wsDetails=XLSX.utils.aoa_to_sheet([data.headers,...data.rows]);XLSX.utils.book_append_sheet(wb,wsDetails,'รายการขาย');
-  const categoryRows=Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return [label,arr.length,arr.reduce((s,o)=>s+Number(o.quantity||0),0),arr.reduce((s,o)=>s+Number(o.total_amount||0),0)];});
-  const wsCategory=XLSX.utils.aoa_to_sheet([['ประเภทสินค้า','จำนวนออเดอร์','จำนวนชุด','ยอดขายรวม (บาท)'],...categoryRows]);XLSX.utils.book_append_sheet(wb,wsCategory,'แยกประเภท');
-  XLSX.writeFile(wb,'sticker-khunnano-report-'+data.month+'.xlsx');msg.textContent='สร้างไฟล์ Excel แล้ว หากไม่เห็นไฟล์ ให้ตรวจสอบรายการดาวน์โหลดของเบราว์เซอร์';
- }catch(err){msg.textContent=err.message||'ดาวน์โหลด Excel ไม่สำเร็จ';alert(msg.textContent);}
+  reportStatus('กำลังเตรียมรายงาน Excel...');
+  const data=reportData();if(!data){reportStatus('กรุณาเลือกเดือนก่อนดาวน์โหลด',true);return;}
+  button.disabled=true;
+  try{
+   const XLSX=await loadXlsxLibrary();
+   const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
+   const wb=XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'สรุป');
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([data.headers,...data.rows]),'รายการขาย');
+   const categoryRows=Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return [label,arr.length,arr.reduce((s,o)=>s+Number(o.quantity||0),0),arr.reduce((s,o)=>s+Number(o.total_amount||0),0)];});
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ประเภทสินค้า','จำนวนออเดอร์','จำนวนชุด','ยอดขายรวม (บาท)'],...categoryRows]),'แยกประเภท');
+   XLSX.writeFile(wb,'sticker-khunnano-report-'+data.month+'.xlsx');
+   reportStatus('สั่งดาวน์โหลด Excel แล้ว หากไม่เห็นไฟล์ ให้เปิดรายการดาวน์โหลดของ Safari/เบราว์เซอร์');
+  }catch(libErr){
+   downloadExcelFallbackRO(data);
+   reportStatus('ดาวน์โหลดเป็นไฟล์ Excel-compatible (.xls) แล้ว เนื่องจากโหลดตัวสร้าง .xlsx ไม่สำเร็จ');
+  }
+ }catch(err){reportStatus('สร้างรายงานไม่สำเร็จ: '+(err?.message||String(err)),true);alert('สร้างรายงานไม่สำเร็จ: '+(err?.message||String(err)));}
  finally{button.disabled=false;}
 });
 document.getElementById('downloadReportPdf').addEventListener('click',()=>{
- const data=reportData();if(!data)return;
- const printWindow=window.open('','_blank');
- if(!printWindow){alert('เบราว์เซอร์บล็อกหน้าต่างรายงาน กรุณาอนุญาตป๊อปอัปสำหรับเว็บไซต์นี้แล้วลองใหม่');return;}
- const revenue=data.list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0),known=data.list.filter(o=>o.total_cost!=null),profit=known.length?known.reduce((s,o)=>s+Number(o.profit_amount||0),0):null;
- const escPrint=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const detailRows=data.list.map(o=>'<tr><td>'+escPrint(o.order_date)+'</td><td>'+escPrint(categoryNames[o.product_type]||o.product_type)+'</td><td>'+escPrint(buyerNames[o.buyer_type]||o.buyer_type)+'</td><td>'+escPrint(o.product_name)+'</td><td>'+Number(o.coins||0).toLocaleString('th-TH')+'</td><td>'+Number(o.quantity||0).toLocaleString('th-TH')+'</td><td>'+Number(o.unit_price||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.cost_price==null?'—':Number(o.cost_price).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+Number(o.total_amount||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.total_cost==null?'—':Number(o.total_cost).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+(o.profit_amount==null?'—':Number(o.profit_amount).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+escPrint(o.customer_name||'—')+'</td><td>'+escPrint(o.agent_name||'—')+'</td><td>'+escPrint(o.notes||'')+'</td></tr>').join('');
- const categoryRows=Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return '<tr><td>'+label+'</td><td>'+arr.length+'</td><td>'+arr.reduce((s,o)=>s+Number(o.quantity||0),0)+'</td><td>฿'+arr.reduce((s,o)=>s+Number(o.total_amount||0),0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';}).join('');
- printWindow.document.open();printWindow.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>รายงาน STICKER KHUNNANO '+data.month+'</title><style>body{font-family:Arial,Tahoma,sans-serif;color:#222;padding:20px}h1{font-size:22px}h2{font-size:16px;margin-top:24px}.summary{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}.summary div{border:1px solid #bbb;padding:10px;min-width:120px}table{border-collapse:collapse;width:100%;font-size:10px;margin-top:10px}th,td{border:1px solid #aaa;padding:5px;text-align:left;vertical-align:top}th{background:#eee}.note{font-size:11px;color:#555;margin-top:12px}.actions{margin-bottom:16px}button{padding:8px 14px}@media print{body{padding:0}.actions{display:none}table{font-size:8px;page-break-inside:auto}tr{page-break-inside:avoid}thead{display:table-header-group}@page{size:A4 landscape;margin:10mm}}</style></head><body><div class="actions"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div><h1>รายงานยอดขาย STICKER KHUNNANO</h1><div>ประจำเดือน: '+escPrint(data.month)+'</div><div class="summary"><div>ยอดขายรวม<br><b>฿'+revenue.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b></div><div>จำนวนออเดอร์<br><b>'+data.list.length.toLocaleString('th-TH')+'</b></div><div>เหรียญรวม<br><b>'+coins.toLocaleString('th-TH')+'</b></div><div>กำไรที่มีต้นทุน<br><b>'+(profit===null?'—':'฿'+profit.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</b></div></div><h2>สรุปตามประเภทสินค้า</h2><table><thead><tr><th>ประเภทสินค้า</th><th>จำนวนออเดอร์</th><th>จำนวนชุด</th><th>ยอดขายรวม</th></tr></thead><tbody>'+categoryRows+'</tbody></table><h2>รายละเอียดออเดอร์</h2><table><thead><tr>'+data.headers.map(h=>'<th>'+escPrint(h)+'</th>').join('')+'</tr></thead><tbody>'+(detailRows||'<tr><td colspan="14">ไม่มีออเดอร์ในเดือนนี้</td></tr>')+'</tbody></table><p class="note">หมายเหตุ: กำไรคำนวณจากรายการที่มีการบันทึกต้นทุนไว้เท่านั้น</p><script>window.onload=function(){setTimeout(function(){window.print()},400)};<\/script></body></html>');
- printWindow.document.close();
- document.getElementById('reportDownloadStatus').textContent='เปิดรายงานสำหรับพิมพ์แล้ว เลือก “บันทึกเป็น PDF” ในหน้าต่างพิมพ์';
+ let printWindow=null;
+ try{
+  // Open synchronously in the click gesture so mobile Safari is less likely to block it.
+  printWindow=window.open('about:blank','_blank');
+  const data=reportData();
+  if(!data){if(printWindow)printWindow.close();reportStatus('กรุณาเลือกเดือนก่อนดาวน์โหลด',true);return;}
+  if(!printWindow){reportStatus('เบราว์เซอร์บล็อกหน้าต่างรายงาน กรุณาอนุญาตป๊อปอัปแล้วลองใหม่',true);alert('เบราว์เซอร์บล็อกหน้าต่างรายงาน กรุณาอนุญาตป๊อปอัปสำหรับเว็บไซต์นี้แล้วลองใหม่');return;}
+  const revenue=data.list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0),known=data.list.filter(o=>o.total_cost!=null),profit=known.length?known.reduce((s,o)=>s+Number(o.profit_amount||0),0):null;
+  const escPrint=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const detailRows=data.list.map(o=>'<tr><td>'+escPrint(o.order_date)+'</td><td>'+escPrint(categoryNames[o.product_type]||o.product_type)+'</td><td>'+escPrint(buyerNames[o.buyer_type]||o.buyer_type)+'</td><td>'+escPrint(o.product_name)+'</td><td>'+Number(o.coins||0).toLocaleString('th-TH')+'</td><td>'+Number(o.quantity||0).toLocaleString('th-TH')+'</td><td>'+Number(o.unit_price||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.cost_price==null?'—':Number(o.cost_price).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+Number(o.total_amount||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.total_cost==null?'—':Number(o.total_cost).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+(o.profit_amount==null?'—':Number(o.profit_amount).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+escPrint(o.customer_name||'—')+'</td><td>'+escPrint(o.agent_name||'—')+'</td><td>'+escPrint(o.notes||'')+'</td></tr>').join('');
+  const categoryRows=Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return '<tr><td>'+label+'</td><td>'+arr.length+'</td><td>'+arr.reduce((s,o)=>s+Number(o.quantity||0),0)+'</td><td>฿'+arr.reduce((s,o)=>s+Number(o.total_amount||0),0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';}).join('');
+  printWindow.document.open();
+  printWindow.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>รายงาน STICKER KHUNNANO '+escPrint(data.month)+'</title><style>body{font-family:Arial,Tahoma,sans-serif;color:#222;padding:20px}h1{font-size:22px}h2{font-size:16px;margin-top:24px}.summary{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}.summary div{border:1px solid #bbb;padding:10px;min-width:120px}table{border-collapse:collapse;width:100%;font-size:10px;margin-top:10px}th,td{border:1px solid #aaa;padding:5px;text-align:left;vertical-align:top}th{background:#eee}.note{font-size:11px;color:#555;margin-top:12px}.actions{margin-bottom:16px}button{padding:8px 14px}@media print{body{padding:0}.actions{display:none}table{font-size:8px;page-break-inside:auto}tr{page-break-inside:avoid}thead{display:table-header-group}@page{size:A4 landscape;margin:10mm}}</style></head><body><div class="actions"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div><h1>รายงานยอดขาย STICKER KHUNNANO</h1><div>ประจำเดือน: '+escPrint(data.month)+'</div><div class="summary"><div>ยอดขายรวม<br><b>฿'+revenue.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b></div><div>จำนวนออเดอร์<br><b>'+data.list.length.toLocaleString('th-TH')+'</b></div><div>เหรียญรวม<br><b>'+coins.toLocaleString('th-TH')+'</b></div><div>กำไรที่มีต้นทุน<br><b>'+(profit===null?'—':'฿'+profit.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</b></div></div><h2>สรุปตามประเภทสินค้า</h2><table><thead><tr><th>ประเภทสินค้า</th><th>จำนวนออเดอร์</th><th>จำนวนชุด</th><th>ยอดขายรวม</th></tr></thead><tbody>'+categoryRows+'</tbody></table><h2>รายละเอียดออเดอร์</h2><table><thead><tr>'+data.headers.map(h=>'<th>'+escPrint(h)+'</th>').join('')+'</tr></thead><tbody>'+(detailRows||'<tr><td colspan="14">ไม่มีออเดอร์ในเดือนนี้</td></tr>')+'</tbody></table><p class="note">หมายเหตุ: กำไรคำนวณจากรายการที่มีการบันทึกต้นทุนไว้เท่านั้น</p><script>window.onload=function(){setTimeout(function(){window.print()},500)};<\/script></body></html>');
+  printWindow.document.close();
+  reportStatus('เปิดรายงาน PDF สำหรับพิมพ์แล้ว หากไม่เห็นหน้าต่าง ให้ตรวจสอบแท็บใหม่ของเบราว์เซอร์');
+ }catch(err){if(printWindow)try{printWindow.close()}catch(_){}reportStatus('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)),true);alert('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)));}
 });
 document.getElementById('reportMonth').addEventListener('change',renderReport);
 document.getElementById('filterHistory').addEventListener('click',renderOrders);
