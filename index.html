@@ -617,23 +617,9 @@
             100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
         }
     
-        /* ===== ทำให้โหมดมืดและการเลือกหมวดทำงานได้แม้ JavaScript ไม่ทำงาน ===== */
+        /* ===== ปุ่มโหมดสี: ให้ JavaScript จัดการธีมและชุดสีโดยไม่ล็อกค่าสีด้วย !important ===== */
         .theme-checkbox { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-        .theme-toggle-btn { display: inline-block; user-select: none; }
-        body:has(#darkModeToggle:checked) {
-            --bg-color: #121212 !important;
-            --screen-bg: #1e1e1e !important;
-            --text-main: #f1f1f1 !important;
-            --text-sub: #aaaaaa !important;
-            --header-bg: linear-gradient(180deg, #252525 0%, #1e1e1e 100%) !important;
-            --card-bg: #2a2a2a !important;
-            --card-border: #383838 !important;
-            --card-img-bg: #1a1a1a !important;
-            --tab-bg: #332940 !important;
-            --tab-color: #d1b3ff !important;
-            --banner-bg: #252525 !important;
-            --banner-border: #383838 !important;
-        }
+        .theme-toggle-btn { display: inline-block; user-select: none; cursor: pointer; }
         .category-tabs { position: relative; z-index: 200; pointer-events: auto; touch-action: manipulation; }
         .category-tabs .tab-item { position: relative; z-index: 201; pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
         .category-anchor { position: absolute; top: -80px; width: 1px; height: 1px; }
@@ -1794,12 +1780,15 @@ apply();
         const chosen = Object.prototype.hasOwnProperty.call(palettes, palette) ? palette : 'lavender';
         const colors = palettes[chosen];
         const root = document.body;
+        const html = document.documentElement;
         root.setAttribute('data-dark-palette', chosen);
+        html.setAttribute('data-dark-palette', chosen);
         const vars = {'--bg-color':colors.bg,'--screen-bg':colors.screen,'--text-main':colors.text,'--text-sub':colors.sub,'--header-bg':colors.header,'--card-bg':colors.card,'--card-border':colors.border,'--card-img-bg':colors.image,'--tab-bg':colors.tab,'--tab-color':colors.tabText,'--banner-bg':colors.banner,'--banner-border':colors.border,'--accent-color':colors.accent,'--accent-contrast':colors.contrast};
+        /* Apply palette variables to both html and body so nested site styles reliably inherit them. */
         if (root.getAttribute('data-theme') === 'dark') {
-            Object.entries(vars).forEach(([name,value]) => root.style.setProperty(name,value));
+            Object.entries(vars).forEach(([name,value]) => { root.style.setProperty(name,value); html.style.setProperty(name,value); });
         } else {
-            Object.keys(vars).forEach(name => root.style.removeProperty(name));
+            Object.keys(vars).forEach(name => { root.style.removeProperty(name); html.style.removeProperty(name); });
         }
         document.querySelectorAll('.dark-palette-swatch').forEach(button => {
             button.setAttribute('aria-pressed', button.getAttribute('data-palette') === chosen ? 'true' : 'false');
@@ -1850,17 +1839,17 @@ apply();
         let savedPalette = 'lavender';
         try { savedPalette = localStorage.getItem('khunnano-dark-palette') || 'lavender'; } catch (e) {}
         setDarkPalette(savedPalette, false);
-        document.querySelectorAll('.dark-palette-swatch').forEach(button => {
-            button.addEventListener('click', function (event) {
+        const palettePicker = document.getElementById('darkPalettePicker');
+        if (palettePicker && !palettePicker.dataset.paletteListenerReady) {
+            palettePicker.dataset.paletteListenerReady = 'true';
+            palettePicker.addEventListener('click', function (event) {
+                const button = event.target.closest('button.dark-palette-swatch[data-palette]');
+                if (!button || !palettePicker.contains(button)) return;
                 event.preventDefault();
                 event.stopPropagation();
-                setDarkPalette(this.getAttribute('data-palette'));
+                setDarkPalette(button.getAttribute('data-palette'));
             }, true);
-        });
-        document.getElementById('darkPalettePicker')?.addEventListener('click', function (event) {
-            const button = event.target.closest('.dark-palette-swatch');
-            if (button) setDarkPalette(button.getAttribute('data-palette'));
-        }, true);
+        }
         if (checkbox) checkbox.addEventListener('change', function () {
             const dark = this.checked;
             document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
