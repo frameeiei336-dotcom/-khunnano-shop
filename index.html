@@ -805,8 +805,8 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 </div>
 <div class="brand-header">
 <div class="brand-title">✨ STICKER KHUNNANO</div>
-<input aria-label="เปิดโหมดมืด" class="theme-checkbox" id="darkModeToggle" type="checkbox"/><label class="theme-toggle-btn" for="darkModeToggle" id="themeBtn">🌙 โหมดมืด</label>
-<div aria-label="เลือกสีธีมโหมดมืด" class="dark-palette-picker" id="darkPalettePicker"><span class="palette-label">🎨 เลือกสีโหมดมืด</span>
+<input aria-label="สลับโหมดสี" class="theme-checkbox" id="darkModeToggle" type="checkbox"/><label class="theme-toggle-btn" for="darkModeToggle" id="themeBtn">🎨 โหมดสี</label>
+<div aria-label="เลือกโทนสี" class="dark-palette-picker" id="darkPalettePicker"><span class="palette-label">🎨 โหมดสี — แตะเพื่อเปลี่ยนสีเว็บไซต์</span>
 <button class="dark-palette-swatch" type="button" data-palette="lavender" aria-label="Lavender Dream ม่วงลาเวนเดอร์" title="ม่วงลาเวนเดอร์" aria-pressed="true" style="background:#b99af7"></button>
 <button class="dark-palette-swatch" type="button" data-palette="pink" aria-label="Pink Candy ชมพู" title="ชมพูพาสเทล" aria-pressed="false" style="background:#f3a4ce"></button>
 <button class="dark-palette-swatch" type="button" data-palette="mint" aria-label="Mint Fresh เขียวมิ้นต์" title="เขียวมิ้นต์" aria-pressed="false" style="background:#83dcc3"></button>
@@ -1777,9 +1777,30 @@ apply();
     };
 
     function setDarkPalette(palette, save = true) {
-        const allowed = ['lavender','pink','mint','mocha','ocean','cherry','emerald','ice','butter','silver','sunset','neon'];
-        const chosen = allowed.includes(palette) ? palette : 'lavender';
-        document.body.setAttribute('data-dark-palette', chosen);
+        const palettes = {
+            lavender: {bg:'#171323', screen:'#211a32', text:'#f7f1ff', sub:'#c7badb', header:'linear-gradient(180deg,#302343 0%,#211a32 100%)', card:'#2b2140', border:'#49365f', image:'#1b1428', tab:'#46305f', tabText:'#e4ccff', banner:'#302343', accent:'#b99af7', contrast:'#211a32'},
+            pink: {bg:'#21151e', screen:'#2b1c29', text:'#fff2fa', sub:'#d8bacb', header:'linear-gradient(180deg,#43263b 0%,#2b1c29 100%)', card:'#382436', border:'#5a3851', image:'#21151e', tab:'#59364f', tabText:'#ffd2e9', banner:'#43263b', accent:'#f3a4ce', contrast:'#321b2a'},
+            mint: {bg:'#101d1b', screen:'#182724', text:'#edfff9', sub:'#b7d5cb', header:'linear-gradient(180deg,#203b35 0%,#182724 100%)', card:'#20332f', border:'#34534b', image:'#101d1b', tab:'#2b5147', tabText:'#b8f5df', banner:'#203b35', accent:'#83dcc3', contrast:'#102a23'},
+            mocha: {bg:'#1d1713', screen:'#282019', text:'#fff6e9', sub:'#d7c5af', header:'linear-gradient(180deg,#3b2b20 0%,#282019 100%)', card:'#34271e', border:'#584231', image:'#1d1713', tab:'#4b3829', tabText:'#f2d5ad', banner:'#3b2b20', accent:'#d8b994', contrast:'#2c2119'},
+            ocean: {bg:'#101923', screen:'#172431', text:'#eff8ff', sub:'#b8ccdc', header:'linear-gradient(180deg,#20364a 0%,#172431 100%)', card:'#203142', border:'#344f67', image:'#101923', tab:'#2a4b67', tabText:'#c1e5ff', banner:'#20364a', accent:'#75c9ff', contrast:'#102333'},
+            cherry: {bg:'#211316', screen:'#2d1a1e', text:'#fff1f2', sub:'#dcbfc3', header:'linear-gradient(180deg,#482329 0%,#2d1a1e 100%)', card:'#3b2328', border:'#63343c', image:'#211316', tab:'#5a2c36', tabText:'#ffc8d0', banner:'#482329', accent:'#ff8295', contrast:'#35171d'},
+            emerald: {bg:'#101c17', screen:'#19271f', text:'#f0fff4', sub:'#b9d3c1', header:'linear-gradient(180deg,#23402f 0%,#19271f 100%)', card:'#21352a', border:'#355843', image:'#101c17', tab:'#2d503b', tabText:'#c1f5d0', banner:'#23402f', accent:'#6ed69a', contrast:'#102719'},
+            ice: {bg:'#121b25', screen:'#1b2937', text:'#f2f9ff', sub:'#bfcedd', header:'linear-gradient(180deg,#293d50 0%,#1b2937 100%)', card:'#243646', border:'#3c566b', image:'#121b25', tab:'#304f69', tabText:'#c9ebff', banner:'#293d50', accent:'#9bdcff', contrast:'#173044'},
+            butter: {bg:'#201d12', screen:'#2c2819', text:'#fffbe9', sub:'#d9d0aa', header:'linear-gradient(180deg,#464027 0%,#2c2819 100%)', card:'#393321', border:'#5b5231', image:'#201d12', tab:'#554a29', tabText:'#ffefb0', banner:'#464027', accent:'#f1d66f', contrast:'#30280e'},
+            silver: {bg:'#17191d', screen:'#22252b', text:'#f6f7fa', sub:'#c0c5ce', header:'linear-gradient(180deg,#343943 0%,#22252b 100%)', card:'#2b2f37', border:'#444a55', image:'#17191d', tab:'#3c424d', tabText:'#e1e6ee', banner:'#343943', accent:'#c2cad7', contrast:'#22252b'},
+            sunset: {bg:'#211811', screen:'#2d2118', text:'#fff5ec', sub:'#dcc2ac', header:'linear-gradient(180deg,#493020 0%,#2d2118 100%)', card:'#3a291e', border:'#60422d', image:'#211811', tab:'#5a3b25', tabText:'#ffd2a8', banner:'#493020', accent:'#ffa66b', contrast:'#382014'},
+            neon: {bg:'#130f20', screen:'#1e1730', text:'#f9f4ff', sub:'#cbbde8', header:'linear-gradient(180deg,#30204a 0%,#1e1730 100%)', card:'#281e3d', border:'#493365', image:'#130f20', tab:'#42265f', tabText:'#efcaff', banner:'#30204a', accent:'#c66cff', contrast:'#20102f'}
+        };
+        const chosen = Object.prototype.hasOwnProperty.call(palettes, palette) ? palette : 'lavender';
+        const colors = palettes[chosen];
+        const root = document.body;
+        root.setAttribute('data-dark-palette', chosen);
+        const vars = {'--bg-color':colors.bg,'--screen-bg':colors.screen,'--text-main':colors.text,'--text-sub':colors.sub,'--header-bg':colors.header,'--card-bg':colors.card,'--card-border':colors.border,'--card-img-bg':colors.image,'--tab-bg':colors.tab,'--tab-color':colors.tabText,'--banner-bg':colors.banner,'--banner-border':colors.border,'--accent-color':colors.accent,'--accent-contrast':colors.contrast};
+        if (root.getAttribute('data-theme') === 'dark') {
+            Object.entries(vars).forEach(([name,value]) => root.style.setProperty(name,value));
+        } else {
+            Object.keys(vars).forEach(name => root.style.removeProperty(name));
+        }
         document.querySelectorAll('.dark-palette-swatch').forEach(button => {
             button.setAttribute('aria-pressed', button.getAttribute('data-palette') === chosen ? 'true' : 'false');
         });
@@ -1793,7 +1814,10 @@ apply();
         const isDark = checkbox ? checkbox.checked : body.getAttribute('data-theme') === 'dark';
         if (checkbox) checkbox.checked = !isDark;
         body.setAttribute('data-theme', !isDark ? 'dark' : 'light');
-        if (btn) btn.innerText = !isDark ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+        let currentPalette = 'lavender';
+        try { currentPalette = localStorage.getItem('khunnano-dark-palette') || 'lavender'; } catch (e) {}
+        setDarkPalette(currentPalette, false);
+        if (btn) btn.innerText = '🎨 โหมดสี';
         try { localStorage.setItem('khunnano-theme', !isDark ? 'dark' : 'light'); } catch (e) {}
     };
 
@@ -1822,17 +1846,28 @@ apply();
         const checkbox = get('darkModeToggle');
         if (checkbox) checkbox.checked = saved === 'dark';
         const btn = get('themeBtn');
-        if (btn) btn.innerText = document.body.getAttribute('data-theme') === 'dark' ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+        if (btn) btn.innerText = '🎨 โหมดสี';
         let savedPalette = 'lavender';
         try { savedPalette = localStorage.getItem('khunnano-dark-palette') || 'lavender'; } catch (e) {}
         setDarkPalette(savedPalette, false);
         document.querySelectorAll('.dark-palette-swatch').forEach(button => {
-            button.addEventListener('click', function () { setDarkPalette(this.getAttribute('data-palette')); });
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                setDarkPalette(this.getAttribute('data-palette'));
+            }, true);
         });
+        document.getElementById('darkPalettePicker')?.addEventListener('click', function (event) {
+            const button = event.target.closest('.dark-palette-swatch');
+            if (button) setDarkPalette(button.getAttribute('data-palette'));
+        }, true);
         if (checkbox) checkbox.addEventListener('change', function () {
             const dark = this.checked;
             document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-            if (btn) btn.innerText = dark ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+            let currentPalette = 'lavender';
+            try { currentPalette = localStorage.getItem('khunnano-dark-palette') || 'lavender'; } catch (e) {}
+            setDarkPalette(currentPalette, false);
+            if (btn) btn.innerText = '🎨 โหมดสี';
             try { localStorage.setItem('khunnano-theme', dark ? 'dark' : 'light'); } catch (e) {}
         });
 
