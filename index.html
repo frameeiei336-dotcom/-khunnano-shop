@@ -875,6 +875,21 @@ body[data-theme="light"] .tab-item, body[data-theme="light"] button, body[data-t
 @media(prefers-reduced-motion:reduce){body[data-theme="light"] *,body[data-theme="light"] *:before,body[data-theme="light"] *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
 
 </style>
+<style id="khunnano-promo-ticker-motion-fix">
+/* Keep the announcement strip moving even while other animations are reduced. */
+body[data-theme="light"] .promo-ticker span {
+  display:inline-block !important;
+  animation-name:ticker !important;
+  animation-duration:15s !important;
+  animation-timing-function:linear !important;
+  animation-iteration-count:infinite !important;
+  animation-fill-mode:none !important;
+}
+@keyframes ticker {
+  0% { transform:translateX(100%); }
+  100% { transform:translateX(-100%); }
+}
+</style>
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
