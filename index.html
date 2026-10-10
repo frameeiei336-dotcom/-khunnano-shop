@@ -1254,7 +1254,7 @@ body[data-theme="light"] .linestore-banner::after {
 <a class="tab-item" data-category-link="melody" href="#cat-melody">เมโลดี้</a>
 </div>
 <div class="my-orders-wrap">
-<button id="myOrdersBtn" type="button">📦 รายการที่ฉันสั่ง</button>
+<button id="myOrdersBtn" type="button" aria-hidden="true" tabindex="-1" style="display:none">📦 รายการที่ฉันสั่ง</button>
 <button class="cart-top-btn" id="cartBtn" type="button">🛒 ตะกร้า <span class="cart-count" id="cartCount">0</span></button>
 </div>
 <div class="section-title" id="sectionTitle">รวมหมวดหมู่สินค้าสุดฮิต</div>
@@ -2498,7 +2498,7 @@ window.enterSite = function () {
 
 <style id="khunnano-bottom-tabs-style">
   body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
-  .khunnano-bottom-tabs { position:fixed; z-index:9998; left:0; right:0; bottom:0; padding:8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; background:rgba(250,246,255,.96); border-top:1px solid #dfcef4; box-shadow:0 -5px 22px rgba(91,61,127,.12); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+  .khunnano-bottom-tabs { position:fixed; z-index:9998; left:0; right:0; bottom:0; padding:8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; background:rgba(250,246,255,.96); border-top:1px solid #dfcef4; box-shadow:0 -5px 22px rgba(91,61,127,.12); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
   .khunnano-bottom-tabs button { min-width:0; border:0; border-radius:14px; background:transparent; color:#765b94; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 3px; font:700 10px/1.2 inherit; cursor:pointer; }
   .khunnano-bottom-tabs button .kbt-icon { font-size:20px; line-height:1.1; }
   .khunnano-bottom-tabs button.active { background:linear-gradient(135deg,#e6d7fb,#d6c1f2); color:#4d326f; box-shadow:inset 0 0 0 1px #d3bceF; }
@@ -2510,6 +2510,7 @@ window.enterSite = function () {
   <button type="button" data-kbt="home" class="active"><span class="kbt-icon">⌂</span><span>หน้าแรก</span></button>
   <button type="button" data-kbt="categories"><span class="kbt-icon">▦</span><span>หมวดหมู่</span></button>
   <button type="button" data-kbt="cart" style="position:relative"><span class="kbt-icon">🛒</span><span>ตะกร้า</span><span class="kbt-cart-count" id="kbtCartCount">0</span></button>
+  <button type="button" data-kbt="orders"><span class="kbt-icon">📦</span><span>รายการสั่ง</span></button>
   <button type="button" data-kbt="profile"><span class="kbt-icon">♙</span><span>โปรไฟล์</span></button>
 </nav>
 <script id="khunnano-bottom-tabs-script">
@@ -2527,6 +2528,7 @@ window.enterSite = function () {
     if(key==='home'){if(typeof window.showAllCategories==='function')window.showAllCategories();scrollToTop();}
     if(key==='categories'){openCategoryTabs();}
     if(key==='cart'){var c=document.getElementById('cartBtn');if(c)c.click();}
+    if(key==='orders'){var o=document.getElementById('myOrdersBtn');if(o)o.click();}
     if(key==='profile'){
       /* Use the profile modal API directly so the bottom tab and avatar share one state. */
       var overlay=document.getElementById('khunnanoProfileOverlay');
