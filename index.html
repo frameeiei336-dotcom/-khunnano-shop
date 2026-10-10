@@ -2843,7 +2843,7 @@ html, body, body *, body *::before, body *::after { animation: none !important; 
 body[data-theme="light"] .brand-header{position:relative;isolation:isolate;overflow:hidden;min-height:150px!important;padding-left:clamp(112px,25vw,190px)!important}
 body[data-theme="light"] .brand-title{position:relative;z-index:3;max-width:100%!important;animation:none!important}
 body[data-theme="light"] .khunnano-member-tools{position:relative;z-index:5}
-.sk-reference-cat{position:absolute;display:block;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:2;filter:drop-shadow(0 3px 5px rgba(100,65,142,.12));animation:skCatGentle 5.5s ease-in-out infinite!important;transform-origin:50% 80%}
+.sk-reference-cat{position:absolute;display:block;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:2;filter:drop-shadow(0 3px 5px rgba(100,65,142,.12));animation:skCatGentle 2.7s ease-in-out infinite!important;transform-origin:50% 80%}
 .sk-reference-cat-header-left{width:clamp(118px,31vw,188px);left:-7px;bottom:-5px}
 .sk-reference-cat-header-right{width:clamp(66px,17vw,100px);right:0;bottom:-7px;animation-delay:-2s!important}
 body[data-theme="light"] .search-container{position:relative;isolation:isolate;min-height:90px;padding-right:0!important}
@@ -2858,7 +2858,7 @@ body[data-theme="light"] .customer-quick-strip{position:relative;isolation:isola
 body[data-theme="light"] .customer-quick-strip>*{position:relative;z-index:3}
 .sk-reference-cat-review-left{width:clamp(75px,20vw,112px);left:-3px;bottom:-2px;z-index:2;animation-delay:-1.8s!important}
 .sk-reference-cat-review-cup{width:clamp(78px,21vw,116px);right:-3px;bottom:-3px;z-index:2;animation-delay:-3s!important}
-@keyframes skCatGentle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes skCatGentle{0%,100%{transform:translate3d(0,0,0) rotate(0deg) scale(1)}25%{transform:translate3d(0,-5px,0) rotate(-2deg) scale(1.015)}50%{transform:translate3d(0,-1px,0) rotate(1.5deg) scale(1.005)}75%{transform:translate3d(0,-4px,0) rotate(-1deg) scale(1.01)}}
 /* The page, banner, search area and cards never move; only the illustration itself shifts by 2px. */
 @media(max-width:600px){
  body[data-theme="light"] .brand-header{min-height:134px!important;padding-left:clamp(90px,25vw,120px)!important;padding-right:8px!important}
@@ -2895,25 +2895,26 @@ body[data-theme="light"] .khunnano-floating-cat {
 body[data-theme="light"] .sk-reference-cat-header-right,
 body[data-theme="light"] .khunnano-cat-art-layer .cat-art-search,
 body[data-theme="light"] .khunnano-cat-art-layer .cat-art-banner-right,
-body[data-theme="light"] .khunnano-floating-cat { animation-name: khunnanoCatPeek !important; animation-duration: 5.6s !important; }
+body[data-theme="light"] .khunnano-floating-cat { animation-name: khunnanoCatPeek !important; animation-duration: 3.1s !important; }
 body[data-theme="light"] .khunnano-cat-art-layer .cat-art-review,
 body[data-theme="light"] .khunnano-cat-art-layer .cat-art-review-cup,
 body[data-theme="light"] .khunnano-cat-art-layer .cat-art-banner-left,
 body[data-theme="light"] .sk-reference-cat-review-left,
-body[data-theme="light"] .sk-reference-cat-review-cup { animation-name: khunnanoCatBreathe !important; animation-duration: 6.2s !important; }
+body[data-theme="light"] .sk-reference-cat-review-cup { animation-name: khunnanoCatBreathe !important; animation-duration: 3.7s !important; }
 @keyframes khunnanoCatAlive {
   0%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
-  30% { transform: translate3d(0,-2px,0) rotate(-1.2deg) scale(1.008); }
-  62% { transform: translate3d(0,0,0) rotate(1deg) scale(1); }
+  28% { transform: translate3d(0,-7px,0) rotate(-3deg) scale(1.025); }
+  58% { transform: translate3d(0,-1px,0) rotate(2.5deg) scale(1.008); }
+  78% { transform: translate3d(0,-5px,0) rotate(-1.5deg) scale(1.018); }
 }
 @keyframes khunnanoCatPeek {
   0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
-  42% { transform: translate3d(0,-3px,0) rotate(1.5deg); }
-  70% { transform: translate3d(0,-1px,0) rotate(-1deg); }
+  35% { transform: translate3d(0,-8px,0) rotate(3deg) scale(1.025); }
+  65% { transform: translate3d(0,-2px,0) rotate(-2.5deg) scale(1.01); }
 }
 @keyframes khunnanoCatBreathe {
   0%, 100% { transform: translate3d(0,0,0) scale(1); }
-  50% { transform: translate3d(0,-1.5px,0) scale(1.012); }
+  50% { transform: translate3d(0,-4px,0) rotate(1deg) scale(1.025); }
 }
 @media (prefers-reduced-motion: reduce) {
   body[data-theme="light"] .sk-reference-cat,
