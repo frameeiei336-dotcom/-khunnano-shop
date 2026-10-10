@@ -794,7 +794,8 @@ header, .header, .top-bar, .navbar, .site-header { background:linear-gradient(18
 :where(.tab-item.active,.nav-item.active,.category-tab.active,.category-btn.active) { background:#e8ddff; color:#4c3479; }
 :where(.announcement-card,.announcement,.banner,.notice-box) { background-color:#f8f1ff; border-color:#e5d9f8; }
 /* Reduce motion and brightness/scale changes while scrolling or tapping. */
-*, *::before, *::after { scroll-behavior:auto !important; animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0s !important; }
+html { scroll-behavior:smooth; }
+/* Keep the original decorative animations enabled; reduced-motion users are handled below. */
 :where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):active { filter:none !important; transform:none !important; }
 :where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):hover { filter:none !important; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
@@ -1045,6 +1046,87 @@ input:focus,textarea:focus,select:focus { outline:2px solid #c9aff2 !important; 
 }
 </style>
 
+
+<style id="khunnano-full-reference-redesign">
+/* Full-page lavender cat-shop look based on the supplied reference image. Visual-only: keep all existing shop IDs and handlers. */
+body[data-theme="light"] { background:radial-gradient(circle at 5% 18%,rgba(255,255,255,.95),transparent 19rem),radial-gradient(circle at 94% 52%,rgba(255,224,246,.82),transparent 18rem),linear-gradient(180deg,#eadbff 0%,#f8edff 52%,#e8d8fb 100%) !important; }
+body[data-theme="light"] .app-screen { position:relative; isolation:isolate; overflow:hidden; border-radius:0 !important; border:0 !important; box-shadow:0 0 38px rgba(118,76,164,.18) !important; background:linear-gradient(180deg,rgba(255,251,255,.98),rgba(255,247,252,.98)) !important; }
+body[data-theme="light"] .app-screen::before { content:"✦   ♡      ✧       ♡   ✦"; position:absolute; inset:115px 0 auto; z-index:-1; height:calc(100% - 115px); color:rgba(179,139,225,.26); font-size:19px; letter-spacing:20px; line-height:130px; overflow:hidden; pointer-events:none; background-image:radial-gradient(circle at 6% 17%,rgba(255,255,255,.75) 0 3px,transparent 4px),radial-gradient(circle at 96% 38%,rgba(255,193,228,.55) 0 4px,transparent 5px); }
+body[data-theme="light"] .brand-header { min-height:148px !important; padding:24px 16px 24px !important; align-items:flex-start !important; background:linear-gradient(140deg,#e5d2ff 0%,#fff0f8 52%,#e8dcff 100%) !important; border-bottom:2px solid #ead8fb !important; box-shadow:inset 0 -12px 24px rgba(255,255,255,.45); }
+body[data-theme="light"] .brand-title { max-width:74%; padding-top:16px; font-family:'Mali','Prompt',sans-serif !important; font-size:clamp(19px,5.3vw,25px) !important; line-height:1.18; font-weight:800 !important; letter-spacing:.2px; color:#6f459d !important; text-shadow:0 2px #fff,0 4px 12px rgba(123,75,167,.15); animation:khunnanoTitleBob 3.8s ease-in-out infinite; }
+body[data-theme="light"] .brand-header::before { content:"☁️  ♡  ✦" !important; left:8px !important; top:2px !important; font-size:20px !important; color:#d5b5f0 !important; letter-spacing:10px !important; }
+body[data-theme="light"] .brand-header::after { content:"" !important; }
+body[data-theme="light"] .khunnano-member-tools { position:relative; z-index:8; gap:7px !important; }
+body[data-theme="light"] .khunnano-avatar-btn, body[data-theme="light"] .khunnano-menu-btn { border-radius:50% !important; min-width:43px !important; min-height:43px !important; background:rgba(255,250,255,.9) !important; border:1.5px solid #ddc8f4 !important; box-shadow:0 5px 12px rgba(121,77,164,.12) !important; }
+body[data-theme="light"] .store-status-bar { border-radius:18px !important; margin:0 12px 10px; border:1px solid #eadbf8 !important; }
+body[data-theme="light"] .features-bar { border-radius:999px !important; padding:12px 8px !important; justify-content:space-around; }
+body[data-theme="light"] .search-container { position:relative; }
+body[data-theme="light"] .search-container::after { content:""; }
+body[data-theme="light"] .search-box input { padding-right:62px !important; min-height:48px; }
+body[data-theme="light"] .linestore-banner { position:relative; overflow:hidden; min-height:174px; padding:24px 14px 22px !important; background:linear-gradient(135deg,#ad7ce2 0%,#c79ae8 52%,#e6acd5 100%) !important; }
+body[data-theme="light"] .linestore-banner::after { content:""; }
+body[data-theme="light"] .customer-quick-strip { border-radius:24px !important; background:linear-gradient(120deg,#f2e4ff,#fff0f7) !important; }
+body[data-theme="light"] .category-tabs { background:linear-gradient(90deg,rgba(241,228,255,.92),rgba(255,246,252,.95),rgba(236,220,255,.92)) !important; }
+body[data-theme="light"] .tab-item { border-radius:999px !important; }
+body[data-theme="light"] .poster-card { border-radius:22px !important; }
+body[data-theme="light"] .khunnano-original-cat-mascot { width:84px; height:78px; right:12px; bottom:0; }
+body[data-theme="light"] .khunnano-floating-cat { width:70px; height:70px; right:5px; bottom:94px; }
+@keyframes khunnanoTitleBob { 0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)} }
+@keyframes khunnanoCornerCat { 0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-6px) rotate(5deg)} }
+@keyframes khunnanoBannerCat { 0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(5deg)} }
+@media(max-width:600px){
+ body[data-theme="light"] .brand-header { min-height:132px !important; padding:20px 12px 22px !important; }
+ body[data-theme="light"] .brand-title { max-width:72%; font-size:clamp(17px,5vw,22px) !important; padding-top:15px; }
+ body[data-theme="light"] .brand-header::after { font-size:54px; left:3px; }
+ body[data-theme="light"] .search-container::after { font-size:38px; right:9px; top:43px; }
+ body[data-theme="light"] .khunnano-original-cat-mascot { width:65px; height:60px; right:4px; }
+ body[data-theme="light"] .khunnano-floating-cat { width:55px; height:55px; right:2px; bottom:88px; }
+}
+@media(prefers-reduced-motion:reduce){body[data-theme="light"] .brand-title,body[data-theme="light"] .brand-header::after,body[data-theme="light"] .search-container::after,body[data-theme="light"] .linestore-banner::after{animation:none!important}}
+</style>
+
+
+<style id="khunnano-real-cat-illustration-layer">
+/* Original vector cat illustrations: hand-drawn SVG, not emoji. Decorative only; existing shop interactions remain untouched. */
+.app-screen{position:relative;isolation:isolate;overflow:hidden}
+.khunnano-cat-art-layer{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;color:#c69de7}
+.khunnano-cat-art-layer .cat-art{position:absolute;display:block;overflow:visible;filter:drop-shadow(0 5px 7px rgba(103,67,144,.17));transform-origin:50% 75%}
+.khunnano-cat-art-layer .cat-art-header{width:clamp(118px,26vw,205px);height:auto;left:-15px;top:52px;animation:catArtFloat 4.6s ease-in-out infinite}
+.khunnano-cat-art-layer .cat-art-search{width:clamp(90px,20vw,145px);height:auto;right:3px;top:390px;animation:catArtFloat 3.8s ease-in-out infinite reverse}
+.khunnano-cat-art-layer .cat-art-banner-left{width:clamp(95px,22vw,165px);height:auto;left:-13px;top:780px;animation:catArtSleep 5s ease-in-out infinite}
+.khunnano-cat-art-layer .cat-art-banner-right{width:clamp(90px,21vw,155px);height:auto;right:-9px;top:805px;animation:catArtFloat 4.1s ease-in-out infinite}
+.khunnano-cat-art-layer .cat-art-spark{position:absolute;color:#f5a9d4;font-family:Georgia,serif;text-shadow:0 1px #fff;font-size:clamp(18px,4vw,30px);animation:catArtTwinkle 2.7s ease-in-out infinite}
+.cat-spark-one{top:215px;right:7%;color:#ffe69a!important}.cat-spark-two{top:620px;left:8%;animation-delay:.7s!important}.cat-spark-three{top:990px;right:9%;animation-delay:1.2s!important}
+/* Keep the illustrations behind all real buttons, cards, and text. */
+.app-screen>.promo-ticker,.app-screen>.brand-header,.app-screen>.store-status-bar,.app-screen>.features-bar,.app-screen>.search-container,.app-screen>.order-guide,.app-screen>.linestore-banner,.app-screen>.customer-center-home,.app-screen>.khunnano-login-home,.app-screen>.khunnano-profile-overlay,.app-screen>.khunnano-auth-overlay,.app-screen>.category-tabs,.app-screen>.my-orders-wrap,.app-screen>.section-title,.app-screen>.category-anchor,.app-screen>#backToAll,.app-screen>#productGrid,.app-screen>.site-view-counter,.app-screen>.khunnano-bottom-tabs,.app-screen>.cart-overlay,.app-screen>.review-overlay{position:relative;z-index:1}
+body[data-theme="light"] .brand-header{padding-left:clamp(100px,22vw,175px)!important;min-height:160px!important;align-items:center!important}
+body[data-theme="light"] .brand-title{max-width:100%!important;padding-top:0!important;font-size:clamp(18px,4.7vw,28px)!important}
+body[data-theme="light"] .brand-header::before{content:"☁  ✧  ♡"!important;left:10px!important;top:2px!important;font-size:18px!important;letter-spacing:8px!important}
+body[data-theme="light"] .brand-title::after{content:""!important}
+body[data-theme="light"] .linestore-banner{isolation:isolate;padding-left:clamp(90px,17vw,135px)!important;padding-right:clamp(85px,17vw,130px)!important}
+body[data-theme="light"] .linestore-banner>*{position:relative;z-index:2}
+body[data-theme="light"] .linestore-banner h3{font-size:clamp(17px,4vw,24px)!important}
+body[data-theme="light"] .search-container{padding-right:0}
+body[data-theme="light"] .search-box input{padding-right:18px!important}
+/* Replace emoji cat placeholders with the SVG artwork layer above. */
+body[data-theme="light"] .brand-header::after,body[data-theme="light"] .search-container::after,body[data-theme="light"] .linestore-banner::after{content:""!important;display:none!important}
+@keyframes catArtFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes catArtSleep{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-4px) rotate(-2deg)}}
+@keyframes catArtTwinkle{0%,100%{opacity:.4;transform:scale(.82) rotate(-8deg)}50%{opacity:1;transform:scale(1.15) rotate(12deg)}}
+@media(max-width:600px){
+ body[data-theme="light"] .brand-header{min-height:132px!important;padding:16px 10px 16px clamp(82px,21vw,110px)!important}
+ body[data-theme="light"] .brand-title{font-size:clamp(16px,4.8vw,22px)!important;line-height:1.15}
+ .khunnano-cat-art-layer .cat-art-header{width:clamp(100px,28vw,132px);left:-14px;top:54px}
+ .khunnano-cat-art-layer .cat-art-search{width:90px;right:-4px;top:380px}
+ .khunnano-cat-art-layer .cat-art-banner-left{width:100px;left:-12px;top:760px}
+ .khunnano-cat-art-layer .cat-art-banner-right{width:94px;right:-10px;top:790px}
+ body[data-theme="light"] .linestore-banner{padding:20px 72px 20px!important;min-height:174px}
+ body[data-theme="light"] .linestore-banner p{font-size:12px!important;line-height:1.5}
+}
+@media(max-width:380px){body[data-theme="light"] .brand-header{padding-left:78px!important}.khunnano-cat-art-layer .cat-art-header{width:92px}.khunnano-cat-art-layer .cat-art-search{width:76px;top:375px}.khunnano-cat-art-layer .cat-art-banner-left{width:85px}.khunnano-cat-art-layer .cat-art-banner-right{width:82px}}
+@media(prefers-reduced-motion:reduce){.khunnano-cat-art-layer .cat-art,.khunnano-cat-art-layer .cat-art-spark{animation:none!important}}
+</style>
+
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
@@ -1059,6 +1141,13 @@ input:focus,textarea:focus,select:focus { outline:2px solid #c9aff2 !important; 
 </div>
 </div>
 <div class="app-screen">
+<div class="khunnano-cat-art-layer" aria-hidden="true">
+  <svg class="cat-art cat-art-header" viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="catFurA" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eadcf9"/><stop offset=".58" stop-color="#b8a0d7"/><stop offset="1" stop-color="#8e76b6"/></linearGradient><linearGradient id="catEarA" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd8ec"/><stop offset="1" stop-color="#f3a9d0"/></linearGradient></defs><g stroke="#76558f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="cat-tail" d="M42 117 C12 122 14 84 31 81 C43 79 48 91 39 98" fill="url(#catFurA)"/><path d="M38 65 L27 18 Q26 10 34 15 L66 39 Q91 27 113 41 L145 15 Q153 11 151 21 L145 67 Q160 86 151 111 Q141 141 92 143 Q44 143 31 113 Q24 89 38 65Z" fill="url(#catFurA)"/><path d="M39 49 L34 25 L58 45 M124 45 L145 25 L139 53" fill="url(#catEarA)" stroke="none"/><path d="M48 82 Q48 69 60 72 Q72 76 66 89 Q59 97 50 90Z M112 82 Q112 69 124 72 Q136 76 130 89 Q123 97 114 90Z" fill="#fff9ff" stroke="none"/><g class="cat-eyes" fill="#4e365e" stroke="none"><ellipse cx="61" cy="82" rx="5.5" ry="9"/><ellipse cx="119" cy="82" rx="5.5" ry="9"/><ellipse cx="63" cy="79" rx="1.8" ry="2.7" fill="white"/><ellipse cx="121" cy="79" rx="1.8" ry="2.7" fill="white"/></g><ellipse cx="44" cy="99" rx="10" ry="5" fill="#f6a8d1" stroke="none" opacity=".85"/><ellipse cx="136" cy="99" rx="10" ry="5" fill="#f6a8d1" stroke="none" opacity=".85"/><path d="M86 96 Q91 90 96 96 Q92 103 86 96Z" fill="#e98ab9" stroke="none"/><path d="M91 102 Q85 109 79 104 M91 102 Q97 109 103 104" fill="none"/><path d="M53 100 L35 97 M53 105 L35 108 M128 100 L146 97 M128 105 L146 108" fill="none" stroke-width="1.6"/><path d="M76 43 Q91 32 106 43 Q102 58 91 58 Q80 57 76 43Z" fill="#f4a4cf"/><path d="M84 44 Q91 39 98 44" fill="none" stroke="#fff0fa" stroke-width="2"/><circle cx="91" cy="45" r="3" fill="#fff" stroke="none"/></g><path d="M12 59 Q21 48 30 59 Q21 70 12 59Z" fill="#ffc6e7" stroke="#e99bce" stroke-width="2"/><path d="M157 53 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4Z" fill="#fff4a9" stroke="#e6c6fb" stroke-width="2"/></svg>
+  <svg class="cat-art cat-art-search" viewBox="0 0 150 130" xmlns="http://www.w3.org/2000/svg"><g stroke="#76558f" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path class="cat-tail" d="M33 96 C8 98 12 69 27 69 C38 69 40 81 32 85" fill="#bda8dc"/><path d="M31 51 L23 13 L49 34 Q72 25 91 35 L119 14 L115 54 Q132 73 122 94 Q113 116 75 117 Q36 116 25 94 Q20 72 31 51Z" fill="#c7b4e2"/><path d="M34 39 L29 21 L46 37 M100 37 L116 21 L112 43" fill="#f5bddd" stroke="none"/><path d="M43 71 Q44 60 54 64 Q64 68 58 78 Q51 85 44 78Z M91 71 Q92 60 102 64 Q112 68 106 78 Q99 85 92 78Z" fill="#fff" stroke="none"/><g class="cat-eyes" fill="#523c68" stroke="none"><ellipse cx="52" cy="71" rx="4" ry="7"/><ellipse cx="100" cy="71" rx="4" ry="7"/><circle cx="53" cy="69" r="1.5" fill="white"/><circle cx="101" cy="69" r="1.5" fill="white"/></g><ellipse cx="37" cy="87" rx="7" ry="4" fill="#f4a8d1" stroke="none"/><ellipse cx="115" cy="87" rx="7" ry="4" fill="#f4a8d1" stroke="none"/><path d="M70 84 q5 -5 10 0 q-5 6 -10 0 M75 90 q-5 5 -10 1 M75 90 q5 5 10 1" fill="#e58bb9" stroke-width="1.5"/><path d="M54 91 L40 89 M54 95 L40 98 M96 91 L110 89 M96 95 L110 98" fill="none" stroke-width="1.3"/><path d="M65 35 Q75 27 85 35 Q82 46 75 46 Q68 45 65 35Z" fill="#f4a4cf"/></g><path d="M124 28 q6 -10 12 0 q10 -5 12 5 q-1 9 -12 14 q-11 -5 -12 -14Z" fill="#ffbfe1" stroke="#e59dce" stroke-width="1.5"/></svg>
+  <svg class="cat-art cat-art-banner-left" viewBox="0 0 170 145" xmlns="http://www.w3.org/2000/svg"><g stroke="#76558f" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path class="cat-tail" d="M40 107 C9 115 13 81 29 78 C42 77 45 89 35 94" fill="#b8a0d7"/><path d="M35 59 L27 18 L54 40 Q80 29 102 41 L132 18 L128 63 Q145 82 136 105 Q125 131 82 132 Q41 132 29 105 Q23 81 35 59Z" fill="#c8b6e3"/><path d="M39 45 L33 26 L51 42 M110 42 L129 26 L124 49" fill="#f4b7d9" stroke="none"/><path d="M48 79 Q48 67 60 70 Q70 75 64 85 Q57 91 50 85Z M100 79 Q100 67 112 70 Q122 75 116 85 Q109 91 102 85Z" fill="#fff" stroke="none"/><g class="cat-eyes" fill="#4e365e" stroke="none"><path d="M50 78 Q57 68 64 78 Q59 88 50 78Z"/><path d="M102 78 Q109 68 116 78 Q111 88 102 78Z"/><circle cx="58" cy="77" r="2" fill="white"/><circle cx="110" cy="77" r="2" fill="white"/></g><ellipse cx="43" cy="92" rx="8" ry="4" fill="#f4a8d1" stroke="none"/><ellipse cx="123" cy="92" rx="8" ry="4" fill="#f4a8d1" stroke="none"/><path d="M77 91 q5 -5 10 0 q-5 6 -10 0 M82 97 q-5 5 -10 1 M82 97 q5 5 10 1" fill="#e58bb9" stroke-width="1.5"/><path d="M56 97 L42 95 M56 101 L42 104 M108 97 L122 95 M108 101 L122 104" fill="none" stroke-width="1.3"/><path d="M71 41 Q82 33 93 41 Q89 51 82 51 Q75 50 71 41Z" fill="#f4a4cf"/></g><path d="M143 41 l4 8 8 4 -8 4 -4 8 -4 -8 -8 -4 8 -4Z" fill="#fff2a7" stroke="#e5c3f5" stroke-width="2"/></svg>
+  <svg class="cat-art cat-art-banner-right" viewBox="0 0 160 140" xmlns="http://www.w3.org/2000/svg"><g stroke="#76558f" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path class="cat-tail" d="M36 103 C12 106 13 80 28 77 C39 77 42 87 34 92" fill="#b9a4da"/><path d="M31 56 L23 17 L49 37 Q72 28 94 39 L123 17 L119 59 Q137 77 127 100 Q117 126 78 126 Q39 126 27 101 Q20 78 31 56Z" fill="#c9b7e4"/><path d="M35 43 L29 24 L46 40 M102 40 L120 24 L115 47" fill="#f4b7d9" stroke="none"/><path d="M44 75 Q45 63 55 66 Q65 70 59 80 Q52 87 45 80Z M91 75 Q92 63 102 66 Q112 70 106 80 Q99 87 92 80Z" fill="#fff" stroke="none"/><g class="cat-eyes" fill="#523c68" stroke="none"><ellipse cx="53" cy="75" rx="4" ry="6.5"/><ellipse cx="100" cy="75" rx="4" ry="6.5"/><circle cx="54" cy="73" r="1.5" fill="white"/><circle cx="101" cy="73" r="1.5" fill="white"/></g><ellipse cx="38" cy="90" rx="7" ry="4" fill="#f4a8d1" stroke="none"/><ellipse cx="115" cy="90" rx="7" ry="4" fill="#f4a8d1" stroke="none"/><path d="M70 88 q5 -5 10 0 q-5 6 -10 0 M75 94 q-5 5 -10 1 M75 94 q5 5 10 1" fill="#e58bb9" stroke-width="1.5"/><path d="M55 94 L41 92 M55 98 L41 101 M95 94 L109 92 M95 98 L109 101" fill="none" stroke-width="1.3"/><path d="M65 38 Q75 30 85 38 Q82 48 75 48 Q68 47 65 38Z" fill="#f4a4cf"/></g><path d="M128 33 q5 -8 10 0 q8 -4 10 4 q-1 7 -10 11 q-9 -4 -10 -11Z" fill="#ffbfe1" stroke="#e59dce" stroke-width="1.5"/></svg>
+  <div class="cat-art-spark cat-spark-one">✦</div><div class="cat-art-spark cat-spark-two">♡</div><div class="cat-art-spark cat-spark-three">✧</div>
+</div>
 <div class="promo-ticker">
 <span>🔥 ยินดีต้อนรับสู่ STICKER KHUNNANO | แอดมินเป็นผู้เปิด–ปิดร้านเอง 💜</span>
 </div>
@@ -2603,5 +2692,19 @@ window.enterSite = function () {
 })();
 </script>
 
+<style id="khunnano-floating-cat-style">
+.khunnano-floating-cat{position:fixed;right:8px;bottom:92px;width:72px;height:72px;z-index:9000;pointer-events:none;animation:kfc-float 2.6s ease-in-out infinite;filter:drop-shadow(0 4px 7px rgba(92,55,132,.24))}
+.khunnano-floating-cat svg{width:100%;height:100%;overflow:visible;display:block}
+.khunnano-floating-cat .kfc-tail{transform-box:fill-box;transform-origin:15% 75%;animation:kfc-tail 1.7s ease-in-out infinite}
+.khunnano-floating-cat .kfc-eyes{transform-box:fill-box;transform-origin:center;animation:kfc-blink 4.8s infinite}
+.khunnano-floating-cat .kfc-spark{position:absolute;top:0;left:0;color:#ffb6df;font-size:17px;animation:kfc-spark 1.9s ease-in-out infinite}
+@keyframes kfc-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes kfc-tail{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(23deg)}}
+@keyframes kfc-blink{0%,43%,47%,100%{transform:scaleY(1)}45%,46%{transform:scaleY(.12)}}
+@keyframes kfc-spark{0%,100%{opacity:.35;transform:scale(.75) rotate(-10deg)}50%{opacity:1;transform:scale(1.2) rotate(12deg)}}
+@media(max-width:520px){.khunnano-floating-cat{width:60px;height:60px;right:4px;bottom:86px}}
+@media(prefers-reduced-motion:reduce){.khunnano-floating-cat,.khunnano-floating-cat *{animation:none!important}}
+</style>
+<div class="khunnano-floating-cat" aria-hidden="true"><span class="kfc-spark">✦</span><svg viewBox="0 0 90 82" xmlns="http://www.w3.org/2000/svg"><g stroke="#8060a6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="kfc-tail" d="M23 59 C5 63 6 43 17 41 C24 40 27 47 22 50" fill="#b7a0dc"/><path d="M21 28 L18 8 Q18 4 23 8 L38 19 Q48 15 57 20 L72 8 Q77 5 77 11 L75 31 Q84 43 80 55 Q76 71 49 73 Q23 73 16 57 Q12 42 21 28Z" fill="#cbb7e9"/><path d="M24 22 L23 14 L34 23 M64 23 L73 14 L70 28" fill="#f6c9e6" stroke="none"/><path d="M22 47 Q23 39 31 42 Q36 45 32 51 Q28 55 23 51Z M61 46 Q62 39 69 42 Q74 45 70 51 Q66 55 62 51Z" fill="#fff8ff" stroke="none"/><g class="kfc-eyes" fill="#604777" stroke="none"><ellipse cx="34" cy="46" rx="3.2" ry="5"/><ellipse cx="62" cy="46" rx="3.2" ry="5"/></g><path d="M45 52 q3 -4 6 0 q-3 5 -6 0" fill="#ed8ebc" stroke="none"/><path d="M48 56 q-4 5 -8 1 M48 56 q4 5 8 1" fill="none"/><path d="M28 53 L16 51 M29 57 L17 59 M67 53 L79 51 M66 57 L78 59" fill="none" stroke-width="1.4"/><path d="M39 26 Q45 19 52 26 Q50 34 45 34 Q40 32 39 26Z" fill="#f8a9d4"/><circle cx="45" cy="27" r="2" fill="#fff0fa" stroke="none"/></g></svg></div>
 </body>
 </html>
