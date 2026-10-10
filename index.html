@@ -797,6 +797,28 @@ a:active { transform: scale(.965); filter: brightness(1.06) saturate(1.08); box-
 .theme-example-item img{display:block;width:100%;max-height:68vh;object-fit:contain;border-radius:12px;background:#f7f7f7;}
 @media (max-width:600px){.theme-example-item img{max-height:64vh;}}
 </style>
+
+<style id="sk-main-pastel-purple-theme">
+/* STICKER KHUNNANO — soft lavender storefront theme */
+:root {
+  --bg-color:#f6f1ff; --screen-bg:#fffaff; --text-main:#302447; --text-sub:#716582;
+  --header-bg:linear-gradient(180deg,#f0e6ff 0%,#fffaff 100%);
+  --card-bg:#fffaff; --card-border:#e9defa; --card-img-bg:#f4edff;
+  --tab-bg:#eee4ff; --tab-color:#6845a0; --banner-bg:#f7f0ff; --banner-border:#e4d5fb;
+  --accent-color:#9875dc; --accent-contrast:#ffffff;
+}
+html { background:#f6f1ff !important; scroll-behavior:auto !important; }
+body { background:var(--bg-color,#f6f1ff) !important; color:var(--text-main,#302447); }
+header, .header, .top-bar, .navbar, .site-header { background:var(--header-bg,#f0e6ff) !important; }
+:where(.product-card,.poster-card,.theme-card,.category-card,.cart-item,.order-history-item,.modal-content,.popup-content,.announcement-card) { border-color:var(--card-border,#e9defa) !important; }
+:where(button,.btn,[role="button"],.tab-item,.nav-item,.category-tab) { -webkit-tap-highlight-color:transparent; }
+/* Calm motion and remove brightness/scale effects while scrolling or tapping. */
+*, *::before, *::after { scroll-behavior:auto !important; animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0s !important; }
+:where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):active { filter:none !important; transform:none !important; }
+:where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):hover { filter:none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+</style>
+
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
