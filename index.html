@@ -1263,6 +1263,22 @@ body[data-theme="light"] .app-screen { overflow: visible !important; }
 .khunnano-member-menu.open .khunnano-menu-item { position: relative; z-index: 1; pointer-events: auto !important; }
 </style>
 
+<style id="khunnano-compact-order-guide">
+/* Make the purchase instructions compact, especially on phones. */
+.order-guide {
+  margin: 0 12px 8px !important;
+  padding: 7px 10px !important;
+  gap: 2px !important;
+  border-radius: 11px !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  box-shadow: none !important;
+}
+.order-guide strong { font-size: 11px !important; line-height: 1.35 !important; }
+@media (min-width: 900px) {
+  .order-guide { margin-left: 34px !important; margin-right: 34px !important; padding: 8px 12px !important; }
+}
+</style>
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
