@@ -1002,6 +1002,49 @@ input:focus,textarea:focus,select:focus { outline:2px solid #c9aff2 !important; 
  .customer-quick-strip { max-width:100%; }
 }
 </style>
+
+<style id="khunnano-kawaii-friends">
+/* Kawaii friends: small, restrained decoration; no existing handlers or layout sections removed. */
+.brand-header { position: relative; }
+.brand-title { position: relative; z-index: 1; }
+.brand-title::after {
+  content: "  🎀 🖤 🐰 ☁️";
+  display: inline-block;
+  margin-left: 3px;
+  font-family: sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  vertical-align: middle;
+  transform-origin: center bottom;
+  animation: khunnano-friends-bob 3.4s ease-in-out infinite;
+}
+@keyframes khunnano-friends-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-2deg); }
+}
+/* A tiny sticker-like accent in the header, kept behind controls and away from content. */
+.brand-header::before {
+  content: "✦";
+  position: absolute;
+  left: 12px;
+  top: 4px;
+  color: rgba(168, 112, 218, .42);
+  font-size: 13px;
+  pointer-events: none;
+  animation: khunnano-sparkle 2.8s ease-in-out infinite;
+}
+@keyframes khunnano-sparkle {
+  0%, 100% { opacity: .35; transform: scale(.9) rotate(0deg); }
+  50% { opacity: .85; transform: scale(1.15) rotate(12deg); }
+}
+@media (max-width: 360px) {
+  .brand-title::after { content: " 🎀 🖤 ☁️"; font-size: 10px; letter-spacing: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-title::after, .brand-header::before { animation: none !important; }
+}
+</style>
+
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
