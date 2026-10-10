@@ -2982,5 +2982,29 @@ body[data-theme="light"] .sk-reference-cat-review-cup { animation-name: khunnano
   body[data-theme="light"] .khunnano-floating-cat { animation: none !important; transform: none !important; }
 }
 </style>
+
+<!-- Login button fallback: open auth overlay even if an earlier member-menu script fails. -->
+<script id="khunnano-login-button-fallback">
+(function () {
+  function openKhunnanoAuth(event) {
+    var target = event.target && event.target.closest ? event.target.closest('#khunnanoTopLogin, #khunnanoMenuLogin, #khunnanoLoginBtn') : null;
+    if (!target) return;
+    var overlay = document.getElementById('khunnanoAuthOverlay');
+    if (!overlay) return;
+    event.preventDefault();
+    event.stopPropagation();
+    overlay.style.display = 'flex';
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    var status = document.getElementById('khunnanoAuthStatus');
+    if (status) status.textContent = '';
+    var menu = document.getElementById('khunnanoMemberMenu');
+    if (menu) menu.classList.remove('open');
+    var menuButton = document.getElementById('khunnanoMenuBtn');
+    if (menuButton) menuButton.setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', openKhunnanoAuth, true);
+})();
+</script>
 </body>
 </html>
