@@ -731,9 +731,7 @@ a:active { transform: scale(.965); filter: brightness(1.06) saturate(1.08); box-
 .poster-card:active { transform: scale(.975); }
 .khunnano-member-menu.open { animation: skMenuPop .24s cubic-bezier(.2,.8,.2,1) both; transform-origin: top right; }
 @keyframes skMenuPop { from { opacity: 0; transform: translateY(-10px) scale(.94); filter: blur(2px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
-/* Soft page entrance for the single-page store without touching navigation logic. */
-@keyframes skPageArrive { from { opacity: .7; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
-.app-screen { animation: skPageArrive .38s ease-out both; }
+/* Keep the full store page still; only small decorative cats and sparkles may animate. */
 @media (prefers-reduced-motion: reduce) { .app-screen { animation: none !important; } :where(button, [role="button"], .btn, a, .tab-item, .nav-item, .poster-card, .cart-item, .order-history-item) { transition: none !important; } :where(button, [role="button"], .btn, .tab-item, .nav-item):active::after { animation: none !important; } }
 
 </style>
