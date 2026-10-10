@@ -2704,5 +2704,15 @@ window.enterSite = function () {
 @media(prefers-reduced-motion:reduce){.khunnano-floating-cat,.khunnano-floating-cat *{animation:none!important}}
 </style>
 <div class="khunnano-floating-cat" aria-hidden="true"><span class="kfc-spark">✦</span><svg viewBox="0 0 90 82" xmlns="http://www.w3.org/2000/svg"><g stroke="#8060a6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="kfc-tail" d="M23 59 C5 63 6 43 17 41 C24 40 27 47 22 50" fill="#b7a0dc"/><path d="M21 28 L18 8 Q18 4 23 8 L38 19 Q48 15 57 20 L72 8 Q77 5 77 11 L75 31 Q84 43 80 55 Q76 71 49 73 Q23 73 16 57 Q12 42 21 28Z" fill="#cbb7e9"/><path d="M24 22 L23 14 L34 23 M64 23 L73 14 L70 28" fill="#f6c9e6" stroke="none"/><path d="M22 47 Q23 39 31 42 Q36 45 32 51 Q28 55 23 51Z M61 46 Q62 39 69 42 Q74 45 70 51 Q66 55 62 51Z" fill="#fff8ff" stroke="none"/><g class="kfc-eyes" fill="#604777" stroke="none"><ellipse cx="34" cy="46" rx="3.2" ry="5"/><ellipse cx="62" cy="46" rx="3.2" ry="5"/></g><path d="M45 52 q3 -4 6 0 q-3 5 -6 0" fill="#ed8ebc" stroke="none"/><path d="M48 56 q-4 5 -8 1 M48 56 q4 5 8 1" fill="none"/><path d="M28 53 L16 51 M29 57 L17 59 M67 53 L79 51 M66 57 L78 59" fill="none" stroke-width="1.4"/><path d="M39 26 Q45 19 52 26 Q50 34 45 34 Q40 32 39 26Z" fill="#f8a9d4"/><circle cx="45" cy="27" r="2" fill="#fff0fa" stroke="none"/></g></svg></div>
+
+<style id="khunnano-motion-fix">
+/* Keep the entire page and its sections still. Only tiny cat details may animate. */
+html, body, body *, body *::before, body *::after { animation: none !important; scroll-behavior: auto !important; }
+.khunnano-cat-tail, .khunnano-floating-cat .kfc-tail { animation: khunnanoCatTail 1.9s ease-in-out infinite !important; }
+.khunnano-cat-eyes, .khunnano-floating-cat .kfc-eyes { animation: khunnanoCatBlink 5.1s infinite !important; }
+.khunnano-cat-sparkle, .khunnano-floating-cat .kfc-spark { animation: khunnanoCatTwinkle 2.4s ease-in-out infinite !important; }
+@media (prefers-reduced-motion: reduce) { html, body, body *, body *::before, body *::after { animation: none !important; transition: none !important; } }
+</style>
+
 </body>
 </html>
