@@ -1781,7 +1781,23 @@ function apply(){
   if(n)n.textContent=p.display_name||"ผู้เยี่ยมชม";
   if(em)em.textContent=p.display_name?"โปรไฟล์ลูกค้า":"ยังไม่ได้ตั้งโปรไฟล์";
 }
-function openProfile(){
+async function openProfile(){
+  // โปรไฟล์เปิดได้เฉพาะสมาชิกที่เข้าสู่ระบบแล้ว
+  try{
+    const auth=window.khunnanoAuth;
+    if(!auth || !auth.ready){
+      const loginOverlay=document.getElementById("khunnanoAuthOverlay");
+      if(loginOverlay){loginOverlay.style.display="flex";loginOverlay.classList.add("open");loginOverlay.setAttribute("aria-hidden","false");}
+      return;
+    }
+    const supabase=await auth.ready;
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user){
+      const loginOverlay=document.getElementById("khunnanoAuthOverlay");
+      if(loginOverlay){loginOverlay.style.display="flex";loginOverlay.classList.add("open");loginOverlay.setAttribute("aria-hidden","false");}
+      return;
+    }
+  }catch(err){console.error("Profile auth check failed:",err);return;}
   pendingFile=null;
   if(fileInput)fileInput.value="";
   status.textContent="";
@@ -1935,6 +1951,8 @@ apply();
         signIn.style.display = "none"; signUp.style.display = "none"; signOut.style.display = "block";
         userInfo.textContent = user.email || "เข้าสู่ระบบแล้ว";
         if (topLogin) topLogin.style.display = "none";
+        const avatarButton = document.getElementById("khunnanoAvatarBtn");
+        if (avatarButton) avatarButton.style.display = "flex";
         const accountProfile = window.khunnanoProfile ? await window.khunnanoProfile.get() : null;
         const savedProfile = accountProfile || {};
         if (menuName) menuName.textContent = savedProfile.display_name || "สมาชิก STICKER KHUNNANO";
@@ -1954,11 +1972,12 @@ apply();
         signIn.style.display = "block"; signUp.style.display = "block"; signOut.style.display = "none";
         userInfo.textContent = "";
         if (topLogin) topLogin.style.display = "block";
-        const guestProfile = window.khunnanoProfile ? window.khunnanoProfile.get() : {};
-        if (menuName) menuName.textContent = guestProfile.display_name || "ผู้เยี่ยมชม";
-        if (menuEmail) menuEmail.textContent = guestProfile.display_name ? "โปรไฟล์ลูกค้า" : "ยังไม่ได้ตั้งโปรไฟล์";
+        const avatarButton = document.getElementById("khunnanoAvatarBtn");
+        if (avatarButton) avatarButton.style.display = "none";
+        if (menuName) menuName.textContent = "ผู้เยี่ยมชม";
+        if (menuEmail) menuEmail.textContent = "ยังไม่ได้เข้าสู่ระบบ";
         if (menuLogin) menuLogin.style.display = "block";
-        if (menuProfile) menuProfile.style.display = "block";
+        if (menuProfile) menuProfile.style.display = "none";
         if (menuOrders) menuOrders.style.display = "none";
         if (menuAdmin) menuAdmin.style.display = "none";
         if (menuLogout) menuLogout.style.display = "none";
