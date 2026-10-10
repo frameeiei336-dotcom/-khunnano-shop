@@ -2334,13 +2334,56 @@ window.enterSite = function () {
     if(key==='home'){if(typeof window.showAllCategories==='function')window.showAllCategories();scrollToTop();}
     if(key==='categories'){openCategoryTabs();}
     if(key==='cart'){var c=document.getElementById('cartBtn');if(c)c.click();}
-    if(key==='profile'){var p=document.getElementById('khunnanoMenuProfile');var l=document.getElementById('khunnanoLoginBtn');if(p&&p.offsetParent!==null)p.click();else if(l)l.click();else {var m=document.getElementById('khunnanoMenuLogin');if(m)m.click();}}
+    if(key==='profile'){
+      /* Use the actual profile modal trigger, not the hidden member-menu fallback. */
+      var overlay=document.getElementById('khunnanoProfileOverlay');
+      var avatar=document.getElementById('khunnanoAvatarBtn');
+      if(overlay && overlay.classList.contains('open')){
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+        setActive('home');
+      } else if(avatar){
+        avatar.click();
+      } else {
+        var login=document.getElementById('khunnanoTopLogin')||document.getElementById('khunnanoLoginBtn');
+        if(login)login.click();
+        setActive('home');
+      }
+    }
   });
   function syncCount(){var from=document.getElementById('cartCount'),to=document.getElementById('kbtCartCount');if(from&&to)to.textContent=from.textContent.trim()||'0';}
   syncCount(); var cartCount=document.getElementById('cartCount'); if(cartCount&&window.MutationObserver)new MutationObserver(syncCount).observe(cartCount,{childList:true,subtree:true,characterData:true});
   window.addEventListener('hashchange',function(){var h=(location.hash||'#all').slice(1);setActive(h==='all'?'home':'categories');});
 })();
 </script>
+
+
+<style id="khunnano-profile-modal-fix">
+/* Fix mobile profile dialog visibility and keep the dim layer behind the dialog. */
+#khunnanoProfileOverlay.khunnano-profile-overlay {
+  position: fixed !important; inset: 0 !important; z-index: 10010 !important;
+  display: none; align-items: flex-end !important; justify-content: center !important;
+  padding: 0 !important; background: rgba(54,35,75,.42) !important;
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+}
+#khunnanoProfileOverlay.khunnano-profile-overlay.open { display: flex !important; }
+#khunnanoProfileOverlay .khunnano-profile-box {
+  display: block !important; visibility: visible !important; opacity: 1 !important;
+  position: relative !important; z-index: 10011 !important;
+  width: min(430px, 100%) !important; max-height: min(82vh, 760px) !important;
+  overflow-y: auto !important; margin: 0 auto !important;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  background: #fbf7ff !important; color: #4e3866 !important;
+  border: 1px solid #ddc9f4 !important; border-radius: 24px 24px 0 0 !important;
+  box-shadow: 0 -10px 35px rgba(40,20,60,.22) !important;
+}
+#khunnanoProfileOverlay[aria-hidden="true"] { pointer-events: none; }
+#khunnanoProfileOverlay[aria-hidden="false"] { pointer-events: auto; }
+@media (min-width: 700px) {
+  #khunnanoProfileOverlay.khunnano-profile-overlay { align-items: center !important; padding: 20px !important; }
+  #khunnanoProfileOverlay .khunnano-profile-box { border-radius: 24px !important; }
+}
+</style>
 
 </body>
 </html>
