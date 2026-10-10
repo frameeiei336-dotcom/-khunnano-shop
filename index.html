@@ -1709,6 +1709,23 @@ body[data-theme="light"] .app-screen { overflow: visible !important; }
 (function(){
 const topLogin=document.getElementById("khunnanoTopLogin"), menuBtn=document.getElementById("khunnanoMenuBtn"),menu=document.getElementById("khunnanoMemberMenu"),avatarBtn=document.getElementById("khunnanoAvatarBtn"),profileBtn=document.getElementById("khunnanoMenuProfile"),overlay=document.getElementById("khunnanoProfileOverlay"),closeBtn=document.getElementById("khunnanoProfileClose"),preview=document.getElementById("khunnanoProfileAvatarPreview"),nameInput=document.getElementById("khunnanoProfileName"),saveBtn=document.getElementById("khunnanoProfileSave"),status=document.getElementById("khunnanoProfileStatus"),fileInput=document.getElementById("khunnanoAvatarFile"),pickBtn=document.getElementById("khunnanoAvatarPick"),photoStatus=document.getElementById("khunnanoAvatarPhotoStatus");
 if(!menuBtn||!menu||!avatarBtn||!overlay)return;
+
+/* Put the dropdown directly under body so transformed/overflowing header layers
+   cannot trap it behind the page. Keep its position anchored to the hamburger. */
+if(menu.parentElement!==document.body) document.body.appendChild(menu);
+menu.style.setProperty("position","fixed","important");
+menu.style.setProperty("z-index","2147483000","important");
+menu.style.setProperty("pointer-events","auto","important");
+function positionMemberMenu(){
+  const r=menuBtn.getBoundingClientRect();
+  const width=Math.min(260,window.innerWidth-24);
+  menu.style.setProperty("width",width+"px","important");
+  menu.style.setProperty("right",Math.max(12,window.innerWidth-r.right)+"px","important");
+  menu.style.setProperty("left","auto","important");
+  menu.style.setProperty("top",Math.min(window.innerHeight-80,r.bottom+8)+"px","important");
+  menu.style.setProperty("max-height",Math.max(140,window.innerHeight-r.bottom-20)+"px","important");
+  menu.style.setProperty("overflow-y","auto","important");
+}
 const key="khunnano-guest-profile-v3";
 let pendingFile=null;
 
@@ -1756,9 +1773,12 @@ function closeProfile(){
 menuBtn.addEventListener("click",e=>{
   e.stopPropagation();
   const o=!menu.classList.contains("open");
+  if(o) positionMemberMenu();
   menu.classList.toggle("open",o);
   menuBtn.setAttribute("aria-expanded",o?"true":"false");
 });
+window.addEventListener("resize",()=>{if(menu.classList.contains("open"))positionMemberMenu()});
+window.addEventListener("scroll",()=>{if(menu.classList.contains("open"))positionMemberMenu()},true);
 avatarBtn.addEventListener("click",e=>{e.stopPropagation();openProfile()});
 if(profileBtn){
   profileBtn.style.display="block";
@@ -1773,7 +1793,7 @@ if(topLogin) topLogin.addEventListener("click",()=>{
   }
 });
 document.addEventListener("click",e=>{
-  if(!e.target.closest(".khunnano-member-tools")){
+  if(!menu.contains(e.target)&&!menuBtn.contains(e.target)&&!e.target.closest(".khunnano-member-tools")){
     menu.classList.remove("open");
     menuBtn.setAttribute("aria-expanded","false");
   }
