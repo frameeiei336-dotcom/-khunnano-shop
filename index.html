@@ -939,6 +939,7 @@ input:focus,textarea:focus,select:focus { outline:2px solid #c9aff2 !important; 
 @media(prefers-reduced-motion:reduce){.poster-btn:active,.cart-add-btn:active,.tab-item:active,.category-anchor:active{transform:none !important;}}
 </style>
 
+<style id="khunnano-tab-scroll-spacing">#productGrid,.section-title,.category-tabs{scroll-margin-bottom:100px;scroll-margin-top:18px}</style>
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
@@ -2301,5 +2302,45 @@ window.enterSite = function () {
 <script>
   console.log("Supabase SDK test:", typeof window.supabase !== "undefined" ? "LOADED" : "NOT LOADED");
 </script>
+
+<style id="khunnano-bottom-tabs-style">
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
+  .khunnano-bottom-tabs { position:fixed; z-index:9998; left:0; right:0; bottom:0; padding:8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; background:rgba(250,246,255,.96); border-top:1px solid #dfcef4; box-shadow:0 -5px 22px rgba(91,61,127,.12); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+  .khunnano-bottom-tabs button { min-width:0; border:0; border-radius:14px; background:transparent; color:#765b94; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:7px 3px; font:700 10px/1.2 inherit; cursor:pointer; }
+  .khunnano-bottom-tabs button .kbt-icon { font-size:20px; line-height:1.1; }
+  .khunnano-bottom-tabs button.active { background:linear-gradient(135deg,#e6d7fb,#d6c1f2); color:#4d326f; box-shadow:inset 0 0 0 1px #d3bceF; }
+  .khunnano-bottom-tabs button:active { transform:scale(.97); }
+  .khunnano-bottom-tabs .kbt-cart-count { position:absolute; top:2px; margin-left:25px; min-width:16px; height:16px; border-radius:20px; background:#8b65bb; color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
+  @media(min-width:900px) { .khunnano-bottom-tabs { left:50%; right:auto; width:min(700px,calc(100% - 32px)); transform:translateX(-50%); border:1px solid #dfcef4; border-bottom:0; border-radius:18px 18px 0 0; } }
+</style>
+<nav class="khunnano-bottom-tabs" aria-label="เมนูหลักด้านล่าง" id="khunnanoBottomTabs">
+  <button type="button" data-kbt="home" class="active"><span class="kbt-icon">⌂</span><span>หน้าแรก</span></button>
+  <button type="button" data-kbt="categories"><span class="kbt-icon">▦</span><span>หมวดหมู่</span></button>
+  <button type="button" data-kbt="cart" style="position:relative"><span class="kbt-icon">🛒</span><span>ตะกร้า</span><span class="kbt-cart-count" id="kbtCartCount">0</span></button>
+  <button type="button" data-kbt="profile"><span class="kbt-icon">♙</span><span>โปรไฟล์</span></button>
+</nav>
+<script id="khunnano-bottom-tabs-script">
+(function(){
+  function setActive(key){document.querySelectorAll('[data-kbt]').forEach(function(b){b.classList.toggle('active',b.dataset.kbt===key);});}
+  function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+  function openCategoryTabs(){
+    var tabs=document.getElementById('categoryTabs');
+    if(tabs){tabs.style.display='flex';tabs.scrollIntoView({behavior:'smooth',block:'center'});}
+    else {var grid=document.getElementById('productGrid');if(grid)grid.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-kbt]'); if(!btn)return;
+    var key=btn.dataset.kbt; setActive(key);
+    if(key==='home'){if(typeof window.showAllCategories==='function')window.showAllCategories();scrollToTop();}
+    if(key==='categories'){openCategoryTabs();}
+    if(key==='cart'){var c=document.getElementById('cartBtn');if(c)c.click();}
+    if(key==='profile'){var p=document.getElementById('khunnanoMenuProfile');var l=document.getElementById('khunnanoLoginBtn');if(p&&p.offsetParent!==null)p.click();else if(l)l.click();else {var m=document.getElementById('khunnanoMenuLogin');if(m)m.click();}}
+  });
+  function syncCount(){var from=document.getElementById('cartCount'),to=document.getElementById('kbtCartCount');if(from&&to)to.textContent=from.textContent.trim()||'0';}
+  syncCount(); var cartCount=document.getElementById('cartCount'); if(cartCount&&window.MutationObserver)new MutationObserver(syncCount).observe(cartCount,{childList:true,subtree:true,characterData:true});
+  window.addEventListener('hashchange',function(){var h=(location.hash||'#all').slice(1);setActive(h==='all'?'home':'categories');});
+})();
+</script>
+
 </body>
 </html>
