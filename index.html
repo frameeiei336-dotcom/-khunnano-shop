@@ -2088,7 +2088,7 @@ window.enterSite = function () {
             const viewerImg = document.getElementById('imageViewerImg');
             const closeBtn = document.getElementById('imageViewerClose');
             if(!viewer || !viewerImg || !closeBtn) return;
-            document.querySelectorAll('.poster-img-box img').forEach(img=>{
+            document.querySelectorAll('.poster-img-box img:not([data-example]):not([data-example-list])').forEach(img=>{
                 img.addEventListener('click', function(e){
                     e.preventDefault();
                     e.stopPropagation();
