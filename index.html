@@ -2436,3 +2436,43 @@ window.enterSite = function () {
 
 </body>
 </html>
+
+
+<style id="khunnano-profile-center-modal-final">
+/* Profile opens in the middle of the visible screen on mobile and desktop. */
+#khunnanoProfileOverlay.khunnano-profile-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10010 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+#khunnanoProfileOverlay.khunnano-profile-overlay.open,
+#khunnanoProfileOverlay.khunnano-profile-overlay[aria-hidden="false"] {
+  display: flex !important;
+}
+#khunnanoProfileOverlay.khunnano-profile-overlay[aria-hidden="true"] {
+  display: none !important;
+  pointer-events: none !important;
+}
+#khunnanoProfileOverlay .khunnano-profile-box {
+  position: relative !important;
+  flex: 0 1 auto !important;
+  width: min(430px, 100%) !important;
+  max-height: calc(100vh - 32px - env(safe-area-inset-bottom, 0px)) !important;
+  max-height: calc(100dvh - 32px - env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  border-radius: 24px !important;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 700px) {
+  #khunnanoProfileOverlay.khunnano-profile-overlay { padding: 20px !important; }
+  #khunnanoProfileOverlay .khunnano-profile-box { max-height: 88vh !important; }
+}
+</style>
