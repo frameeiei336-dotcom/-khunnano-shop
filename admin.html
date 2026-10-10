@@ -132,31 +132,18 @@ button.primary:hover{box-shadow:0 8px 20px rgba(153,104,224,.28)}
 @media(max-width:700px){.kawaii-mascot.m1{left:3px;top:19%;font-size:19px;opacity:.25}.kawaii-mascot.m2{right:3px;top:29%;font-size:18px;opacity:.25}.kawaii-mascot.m3,.kawaii-mascot.m4,.kawaii-mascot.m5,.kawaii-mascot.m6{display:none}.kawaii-sparkle{font-size:12px}.kawaii-sparkle.s1{left:2%;top:43%}.kawaii-sparkle.s2{right:2%;top:52%}.kawaii-sparkle.s3{display:none}.kawaii-sparkle.s4{right:3%;top:81%}.kawaii-sparkle.s5{display:none}}
 @media(prefers-reduced-motion:reduce){.kawaii-mascot,.kawaii-sparkle,.admin-topbar .brand-mark{animation:none!important}button:not(.nav-item){transition:none!important}html{scroll-behavior:auto}}
 
-/* STICKER KHUNNANO — gentle menu interactions (CSS-only; preserves existing handlers) */
-:where(button, [role="button"], .btn, .nav-item, [class*="menu"], .card, a) {
-  -webkit-tap-highlight-color: transparent;
-}
-:where(button, [role="button"], .btn, .nav-item, [class*="menu"], .card) {
-  transition: box-shadow .22s ease, filter .22s ease, transform .18s ease;
-}
-:where(button, [role="button"], .btn, .nav-item, .card):active,
-a:active {
-  transform: scale(.985);
-  filter: brightness(1.025);
-}
-:where(button, [role="button"], .btn, .nav-item):hover {
-  box-shadow: 0 0 0 1px rgba(232, 145, 218, .16), 0 5px 18px rgba(190, 126, 224, .16);
-}
-:where(button, [role="button"], .btn, .nav-item, a):focus-visible {
-  outline: 2px solid #c78ce8;
-  outline-offset: 3px;
-}
-@keyframes skAdminPageArrive { from { opacity: .86; } to { opacity: 1; } }
-body { animation: skAdminPageArrive .24s ease-out both; }
-@media (prefers-reduced-motion: reduce) {
-  body { animation: none !important; }
-  :where(button, [role="button"], .btn, .nav-item, [class*="menu"], .card, a) { transition: none !important; }
-}
+/* STICKER KHUNNANO — more noticeable pastel touch feedback; CSS-only, existing JS retained */
+:where(button, [role="button"], .btn, .nav-item, .card, a) { -webkit-tap-highlight-color: transparent; }
+:where(button, [role="button"], .btn, .nav-item, .card, a) { transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .24s ease, filter .2s ease, border-color .24s ease; }
+:where(button, [role="button"], .btn, .nav-item, .card):active, a:active { transform: scale(.965); filter: brightness(1.06) saturate(1.1); box-shadow: 0 0 0 2px rgba(236,128,211,.3), 0 8px 22px rgba(166,105,220,.25); }
+:where(button, [role="button"], .btn, .nav-item, a):focus-visible { outline: 2px solid #d779d5; outline-offset: 3px; }
+@media (hover:hover) { :where(button, [role="button"], .btn, .nav-item):hover { box-shadow: 0 0 0 1px rgba(235,145,218,.42), 0 7px 20px rgba(176,113,222,.23); filter: saturate(1.08); } .card:hover { box-shadow: 0 12px 28px rgba(174,106,216,.22); } }
+:where(button, [role="button"], .btn, .nav-item):active::after { content: '✦'; position: absolute; right: 7px; top: 4px; color: #e879d7; font-size: 14px; pointer-events: none; animation: skTapSpark .42s ease-out both; }
+@keyframes skTapSpark { 0% { opacity: 0; transform: scale(.4) rotate(-20deg); } 45% { opacity: 1; transform: scale(1.2) rotate(12deg); } 100% { opacity: 0; transform: translate(5px,-7px) scale(.8); } }
+.nav-item.active { box-shadow: 0 5px 18px rgba(170,91,215,.2); }
+.admin-view.is-active { animation: skAdminViewIn .32s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes skAdminViewIn { from { opacity: 0; transform: translateY(9px) scale(.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { :where(button, [role="button"], .btn, .nav-item, .card, a) { transition: none !important; } :where(button, [role="button"], .btn, .nav-item):active::after { animation: none !important; } .admin-view.is-active { animation: none !important; } }
 
 </style>
 </head>
