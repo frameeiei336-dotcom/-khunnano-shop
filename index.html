@@ -1904,7 +1904,8 @@ apply();
   const status = document.getElementById("khunnanoAuthStatus");
   const userInfo = document.getElementById("khunnanoUserInfo");
 
-  if (!btn || !overlay || !window.khunnanoLogin) return;
+  if (!btn || !overlay) return; // ผูกปุ่มเปิดหน้าล็อกอินไว้เสมอ แม้ระบบ auth จะโหลดช้ากว่า script นี้
+
 
   function openAuth() {
     overlay.setAttribute("aria-hidden", "false");
