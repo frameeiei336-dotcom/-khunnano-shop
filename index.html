@@ -735,6 +735,36 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
     .poster-img-box { height: 220px; }
 }
 
+
+/* STICKER KHUNNANO — gentle menu interactions (CSS-only; preserves existing handlers) */
+:where(button, [role="button"], .btn, [class*="menu"], [class*="card"], a) {
+  -webkit-tap-highlight-color: transparent;
+}
+:where(button, [role="button"], .btn, [class*="menu"], [class*="card"]) {
+  transition: box-shadow .22s ease, filter .22s ease, transform .18s ease;
+}
+:where(button, [role="button"], .btn):active,
+:where([class*="menu"], [class*="card"]):active,
+a:active {
+  transform: scale(.985);
+  filter: brightness(1.025);
+}
+:where(button, [role="button"], .btn):hover {
+  box-shadow: 0 0 0 1px rgba(232, 145, 218, .16), 0 5px 18px rgba(190, 126, 224, .16);
+}
+:where(button, [role="button"], .btn):focus-visible,
+a:focus-visible {
+  outline: 2px solid #c78ce8;
+  outline-offset: 3px;
+}
+/* A short entrance transition makes page changes feel softer without changing navigation. */
+@keyframes skPageArrive { from { opacity: .86; } to { opacity: 1; } }
+body { animation: skPageArrive .24s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none !important; }
+  :where(button, [role="button"], .btn, [class*="menu"], [class*="card"], a) { transition: none !important; }
+}
+
 </style>
 <style id="site-view-counter-style">
 .site-view-counter{margin:0 20px 14px;padding:10px 14px;border:1px solid rgba(138,75,175,.12);border-radius:14px;background:var(--tab-bg,#fff);color:var(--tab-color,var(--text-main,#333));display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.05)}
