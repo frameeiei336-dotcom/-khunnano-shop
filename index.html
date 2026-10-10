@@ -2387,5 +2387,52 @@ window.enterSite = function () {
 }
 </style>
 
+<style id="khunnano-show-more-grid-style">
+/* Keep the mobile shop compact; reveal remaining cards on demand. */
+#productGrid { position: relative; }
+#khunnanoShowMoreWrap { display: none; width: 100%; padding: 10px 16px 24px; box-sizing: border-box; text-align: center; }
+#khunnanoShowMoreBtn {
+  appearance: none; border: 1px solid #d7b9f2; border-radius: 999px;
+  padding: 12px 28px; min-width: 180px; color: #68438a;
+  background: linear-gradient(135deg,#f3e5ff,#e5d2ff); font: inherit; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(105,70,145,.12); cursor: pointer;
+}
+#khunnanoShowMoreBtn:focus-visible { outline: 3px solid #9d75ca; outline-offset: 3px; }
+@media (max-width: 699px) {
+  #khunnanoShowMoreWrap { display: block; }
+  #productGrid:not(.khunnano-grid-expanded) > :nth-child(n+5) { display: none !important; }
+  #productGrid.khunnano-grid-expanded > :nth-child(n+5) { display: revert; }
+}
+@media (min-width: 700px) { #khunnanoShowMoreWrap { display: none !important; } }
+</style>
+<script id="khunnano-show-more-grid-script">
+(function(){
+  function setupShowMore(){
+    var grid=document.getElementById('productGrid');
+    if(!grid || document.getElementById('khunnanoShowMoreWrap')) return;
+    var wrap=document.createElement('div');
+    wrap.id='khunnanoShowMoreWrap';
+    var button=document.createElement('button');
+    button.type='button'; button.id='khunnanoShowMoreBtn';
+    button.textContent='แสดงเพิ่มเติม ↓';
+    button.setAttribute('aria-expanded','false');
+    button.setAttribute('aria-controls','productGrid');
+    button.addEventListener('click',function(){
+      var expanded=grid.classList.toggle('khunnano-grid-expanded');
+      button.textContent=expanded?'แสดงน้อยลง ↑':'แสดงเพิ่มเติม ↓';
+      button.setAttribute('aria-expanded',expanded?'true':'false');
+      if(!expanded){
+        var top=grid.getBoundingClientRect().top + window.pageYOffset - 90;
+        window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+      }
+    });
+    wrap.appendChild(button);
+    grid.insertAdjacentElement('afterend',wrap);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setupShowMore);
+  else setupShowMore();
+})();
+</script>
+
 </body>
 </html>
