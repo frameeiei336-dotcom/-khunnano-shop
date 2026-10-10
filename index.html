@@ -799,20 +799,25 @@ a:active { transform: scale(.965); filter: brightness(1.06) saturate(1.08); box-
 </style>
 
 <style id="sk-main-pastel-purple-theme">
-/* STICKER KHUNNANO — soft lavender storefront theme */
+/* STICKER KHUNNANO — match the admin's pastel lavender palette */
 :root {
-  --bg-color:#f6f1ff; --screen-bg:#fffaff; --text-main:#302447; --text-sub:#716582;
+  --bg-color:#f7f2ff; --screen-bg:#fffaff; --text-main:#302447; --text-sub:#7c7194;
   --header-bg:linear-gradient(180deg,#f0e6ff 0%,#fffaff 100%);
-  --card-bg:#fffaff; --card-border:#e9defa; --card-img-bg:#f4edff;
-  --tab-bg:#eee4ff; --tab-color:#6845a0; --banner-bg:#f7f0ff; --banner-border:#e4d5fb;
-  --accent-color:#9875dc; --accent-contrast:#ffffff;
+  --card-bg:#fffaff; --card-border:#e9def8; --card-img-bg:#f4edff;
+  --tab-bg:#eee5ff; --tab-color:#7858bd; --banner-bg:#f8f1ff; --banner-border:#e5d9f8;
+  --accent-color:#a88be9; --accent-contrast:#ffffff;
 }
-html { background:#f6f1ff !important; scroll-behavior:auto !important; }
-body { background:var(--bg-color,#f6f1ff) !important; color:var(--text-main,#302447); }
-header, .header, .top-bar, .navbar, .site-header { background:var(--header-bg,#f0e6ff) !important; }
-:where(.product-card,.poster-card,.theme-card,.category-card,.cart-item,.order-history-item,.modal-content,.popup-content,.announcement-card) { border-color:var(--card-border,#e9defa) !important; }
-:where(button,.btn,[role="button"],.tab-item,.nav-item,.category-tab) { -webkit-tap-highlight-color:transparent; }
-/* Calm motion and remove brightness/scale effects while scrolling or tapping. */
+html { background:#f7f2ff; scroll-behavior:auto !important; }
+body { background-color:#f7f2ff; color:#302447; }
+header, .header, .top-bar, .navbar, .site-header { background:linear-gradient(180deg,#f0e6ff 0%,#fffaff 100%); }
+:where(.product-card,.poster-card,.theme-card,.category-card,.cart-item,.order-history-item,.modal-content,.popup-content,.announcement-card) { background-color:#fffaff; border-color:#e9def8; }
+:where(.product-card,.poster-card,.theme-card,.category-card,.cart-item,.order-history-item,.modal-content,.popup-content,.announcement-card) img { background-color:#f4edff; }
+:where(button,.btn,[role="button"],.buy-btn,.add-cart-btn,.primary-btn) { -webkit-tap-highlight-color:transparent; }
+:where(button.primary,.btn-primary,.buy-btn,.add-cart-btn,.primary-btn) { background:linear-gradient(135deg,#a88be9,#8060c9); color:#fff; }
+:where(.tab-item,.nav-item,.category-tab,.category-btn) { background-color:#eee5ff; color:#7858bd; }
+:where(.tab-item.active,.nav-item.active,.category-tab.active,.category-btn.active) { background:#e8ddff; color:#4c3479; }
+:where(.announcement-card,.announcement,.banner,.notice-box) { background-color:#f8f1ff; border-color:#e5d9f8; }
+/* Reduce motion and brightness/scale changes while scrolling or tapping. */
 *, *::before, *::after { scroll-behavior:auto !important; animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0s !important; }
 :where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):active { filter:none !important; transform:none !important; }
 :where(button,.btn,[role="button"],a,.tab-item,.nav-item,.poster-card,.product-card,.theme-card,.category-card):hover { filter:none !important; }
