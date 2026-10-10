@@ -2880,5 +2880,47 @@ const art={'cat-header-left': 'UklGRjIkAABXRUJQVlA4WAoAAAAQAAAAFwEAvwAAQUxQSH0BA
 function addCat(parent, cls, key, alt){if(!parent||parent.querySelector("."+cls))return;const im=document.createElement("img");im.className="sk-reference-cat "+cls;im.alt=alt||"";im.setAttribute("aria-hidden","true");im.draggable=false;im.src="data:image/webp;base64,"+art[key];parent.appendChild(im);}
 function init(){const header=document.querySelector(".brand-header"), search=document.querySelector(".search-container"), banner=document.querySelector(".linestore-banner"), review=document.querySelector(".customer-quick-strip");addCat(header,"sk-reference-cat-header-left","cat-header-left");addCat(header,"sk-reference-cat-header-right","cat-header-right");addCat(search,"sk-reference-cat-search","cat-search");addCat(banner,"sk-reference-cat-banner-left","cat-banner-left");addCat(banner,"sk-reference-cat-banner-right","cat-banner-right");addCat(review,"sk-reference-cat-review-left","cat-review-left");addCat(review,"sk-reference-cat-review-cup","cat-review-cup");}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();})();</script>
+
+<style id="khunnano-all-cats-gentle-motion-v2">
+/* Animate only the cat artwork itself; never animate cards, banners, or page containers. */
+body[data-theme="light"] .sk-reference-cat,
+body[data-theme="light"] .khunnano-cat-art-layer img,
+body[data-theme="light"] .khunnano-original-cat-mascot,
+body[data-theme="light"] .khunnano-floating-cat {
+  transform-box: border-box !important;
+  transform-origin: 50% 82% !important;
+  will-change: transform !important;
+  animation: khunnanoCatAlive 4.8s ease-in-out infinite !important;
+}
+body[data-theme="light"] .sk-reference-cat-header-right,
+body[data-theme="light"] .khunnano-cat-art-layer .cat-art-search,
+body[data-theme="light"] .khunnano-cat-art-layer .cat-art-banner-right,
+body[data-theme="light"] .khunnano-floating-cat { animation-name: khunnanoCatPeek !important; animation-duration: 5.6s !important; }
+body[data-theme="light"] .khunnano-cat-art-layer .cat-art-review,
+body[data-theme="light"] .khunnano-cat-art-layer .cat-art-review-cup,
+body[data-theme="light"] .khunnano-cat-art-layer .cat-art-banner-left,
+body[data-theme="light"] .sk-reference-cat-review-left,
+body[data-theme="light"] .sk-reference-cat-review-cup { animation-name: khunnanoCatBreathe !important; animation-duration: 6.2s !important; }
+@keyframes khunnanoCatAlive {
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  30% { transform: translate3d(0,-2px,0) rotate(-1.2deg) scale(1.008); }
+  62% { transform: translate3d(0,0,0) rotate(1deg) scale(1); }
+}
+@keyframes khunnanoCatPeek {
+  0%, 100% { transform: translate3d(0,0,0) rotate(0deg); }
+  42% { transform: translate3d(0,-3px,0) rotate(1.5deg); }
+  70% { transform: translate3d(0,-1px,0) rotate(-1deg); }
+}
+@keyframes khunnanoCatBreathe {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(0,-1.5px,0) scale(1.012); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme="light"] .sk-reference-cat,
+  body[data-theme="light"] .khunnano-cat-art-layer img,
+  body[data-theme="light"] .khunnano-original-cat-mascot,
+  body[data-theme="light"] .khunnano-floating-cat { animation: none !important; transform: none !important; }
+}
+</style>
 </body>
 </html>
