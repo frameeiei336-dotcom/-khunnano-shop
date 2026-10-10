@@ -736,34 +736,29 @@ body.category-melody #sectionTitle::after { content:"✨ หมวดหมู�
 }
 
 
-/* STICKER KHUNNANO — gentle menu interactions (CSS-only; preserves existing handlers) */
-:where(button, [role="button"], .btn, [class*="menu"], [class*="card"], a) {
-  -webkit-tap-highlight-color: transparent;
+/* STICKER KHUNNANO — visible pastel touch feedback; CSS-only, no existing handlers changed */
+:where(button, [role="button"], .btn, a, .tab-item, .nav-item, .poster-card, .cart-item, .order-history-item) { -webkit-tap-highlight-color: transparent; }
+:where(button, [role="button"], .btn, a, .tab-item, .nav-item, .poster-card, .cart-item, .order-history-item) { transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .24s ease, filter .2s ease, border-color .24s ease; }
+:where(button, [role="button"], .btn, .tab-item, .nav-item):active,
+:where(.poster-card, .cart-item, .order-history-item):active,
+a:active { transform: scale(.965); filter: brightness(1.06) saturate(1.08); box-shadow: 0 0 0 2px rgba(236, 128, 211, .28), 0 8px 22px rgba(166, 105, 220, .25); }
+:where(button, [role="button"], .btn, .tab-item, .nav-item):focus-visible, a:focus-visible { outline: 2px solid #d779d5; outline-offset: 3px; }
+@media (hover:hover) {
+  :where(button, [role="button"], .btn, .tab-item, .nav-item):hover { box-shadow: 0 0 0 1px rgba(235, 145, 218, .42), 0 7px 20px rgba(176, 113, 222, .23); filter: saturate(1.08); }
+  .poster-card:hover { box-shadow: 0 12px 28px rgba(174, 106, 216, .24); }
 }
-:where(button, [role="button"], .btn, [class*="menu"], [class*="card"]) {
-  transition: box-shadow .22s ease, filter .22s ease, transform .18s ease;
-}
-:where(button, [role="button"], .btn):active,
-:where([class*="menu"], [class*="card"]):active,
-a:active {
-  transform: scale(.985);
-  filter: brightness(1.025);
-}
-:where(button, [role="button"], .btn):hover {
-  box-shadow: 0 0 0 1px rgba(232, 145, 218, .16), 0 5px 18px rgba(190, 126, 224, .16);
-}
-:where(button, [role="button"], .btn):focus-visible,
-a:focus-visible {
-  outline: 2px solid #c78ce8;
-  outline-offset: 3px;
-}
-/* A short entrance transition makes page changes feel softer without changing navigation. */
-@keyframes skPageArrive { from { opacity: .86; } to { opacity: 1; } }
-body { animation: skPageArrive .24s ease-out both; }
-@media (prefers-reduced-motion: reduce) {
-  body { animation: none !important; }
-  :where(button, [role="button"], .btn, [class*="menu"], [class*="card"], a) { transition: none !important; }
-}
+/* Clearly visible tap sparkle for actionable controls; disappears automatically after press. */
+:where(button, [role="button"], .btn, .tab-item, .nav-item):active::after { content: '✦'; position: absolute; right: 7px; top: 4px; color: #e879d7; font-size: 14px; pointer-events: none; animation: skTapSpark .42s ease-out both; }
+@keyframes skTapSpark { 0% { opacity: 0; transform: scale(.4) rotate(-20deg); } 45% { opacity: 1; transform: scale(1.2) rotate(12deg); } 100% { opacity: 0; transform: translate(5px,-7px) scale(.8); } }
+.tab-item.active { box-shadow: 0 4px 15px rgba(170, 91, 215, .28); }
+.poster-card { will-change: transform; }
+.poster-card:active { transform: scale(.975); }
+.khunnano-member-menu.open { animation: skMenuPop .24s cubic-bezier(.2,.8,.2,1) both; transform-origin: top right; }
+@keyframes skMenuPop { from { opacity: 0; transform: translateY(-10px) scale(.94); filter: blur(2px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+/* Soft page entrance for the single-page store without touching navigation logic. */
+@keyframes skPageArrive { from { opacity: .7; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+.app-screen { animation: skPageArrive .38s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .app-screen { animation: none !important; } :where(button, [role="button"], .btn, a, .tab-item, .nav-item, .poster-card, .cart-item, .order-history-item) { transition: none !important; } :where(button, [role="button"], .btn, .tab-item, .nav-item):active::after { animation: none !important; } }
 
 </style>
 <style id="site-view-counter-style">
