@@ -2288,24 +2288,10 @@ apply();
 </script>
 <script>
 window.enterSite = function () {
+    // Close the announcement only. Do not move the page automatically:
+    // auto-scrolling to #shop/#categories caused the page to appear to jump.
     const popup = document.getElementById('announcementPopup');
     if (popup) popup.classList.add('closed');
-
-    // Move to the actual shop/content area after closing the notice.
-    const target =
-        document.getElementById('shop') ||
-        document.getElementById('categories') ||
-        document.querySelector('.categories') ||
-        document.querySelector('main') ||
-        document.body;
-
-    if (target && target !== document.body) {
-        setTimeout(function () {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 80);
-    } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
 };
 </script>
 <script id="site-view-counter-script">
