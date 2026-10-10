@@ -146,17 +146,35 @@ button.primary:hover{box-shadow:0 8px 20px rgba(153,104,224,.28)}
 @media (prefers-reduced-motion: reduce) { :where(button, [role="button"], .btn, .nav-item, .card, a) { transition: none !important; } :where(button, [role="button"], .btn, .nav-item):active::after { animation: none !important; } .admin-view.is-active { animation: none !important; } }
 
 
-/* STICKER KHUNNANO — comfort mode: stable brightness and reduced motion */
-html { scroll-behavior: auto !important; }
-.card.admin-shell { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-.admin-topbar .brand-mark, .kawaii-mascot, .kawaii-sparkle, .admin-view.is-active { animation: none !important; }
-.kawaii-sparkle { display: none !important; }
-:where(button, [role="button"], .btn, .nav-item, .card, a),
-button:not(.nav-item), .nav-item, .ro-box input, .ro-box select, .ro-box textarea, .field input, .field select, .field textarea { transition: none !important; }
-:where(button, [role="button"], .btn, .nav-item, .card):active, a:active { transform: none !important; filter: none !important; box-shadow: none !important; }
-:where(button, [role="button"], .btn, .nav-item):active::after { content: none !important; animation: none !important; }
-@media (hover: hover) { :where(button, [role="button"], .btn, .nav-item, .card):hover { filter: none !important; transform: none !important; } }
-@media (prefers-reduced-motion: no-preference) { html:focus-within { scroll-behavior: auto !important; } }
+
+/* STICKER KHUNNANO — default pastel purple theme, calm on entry */
+:root{
+  --ink:#302447;--muted:#7c7194;--line:#e6dcf5;--paper:#fff;--canvas:#f6f1ff;
+  --violet:#9270d8;--violet-dark:#7655bd;--mint:#e9e0ff;--pink:#f6e8ff;--gold:#ffdf9e;
+  --kh-kawaii-pink:#f1d9ff;--kh-kawaii-lilac:#e8dcff;--kh-kawaii-glow:#d8c5ff;
+}
+html{scroll-behavior:auto!important;scroll-padding-top:12px}
+body{background-color:#f7f2ff!important;background-image:radial-gradient(ellipse at 8% 0%,rgba(225,210,255,.72),transparent 35%),radial-gradient(ellipse at 95% 12%,rgba(244,224,255,.66),transparent 31%),linear-gradient(145deg,#faf7ff 0%,#f4efff 55%,#faf5ff 100%)!important;color:#302447}
+.card.admin-shell{background:rgba(255,253,255,.97)!important;border-color:#e9def8!important;box-shadow:0 16px 48px rgba(104,75,151,.10)!important}
+.admin-topbar .brand-mark{background:linear-gradient(145deg,#cdb8ff,#9270d8)!important;box-shadow:0 5px 14px rgba(146,112,216,.18)!important;animation:none!important}
+.admin-sidebar{background:linear-gradient(155deg,#fcfaff,#f0e8ff)!important;border-color:#e7dcf7!important}
+.nav-icon{background:#e8ddff!important;color:#7858bd!important;box-shadow:none!important}
+.nav-item:nth-of-type(3) .nav-icon,.nav-item:nth-of-type(4) .nav-icon{background:#eee5ff!important;color:#7858bd!important}
+.nav-item.active{background:#fff!important;border-color:#d8c6f5!important;box-shadow:0 3px 12px rgba(133,99,188,.09)!important;color:#4c3479!important}
+.status{background:#f0e8ff!important;border-color:#ded0fb!important;color:#654b9e!important}
+.store-link,.ro-box,.ro-stat,.rate-order-section,.store-control,.announcement-control{box-shadow:none!important}
+button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-shadow:0 3px 10px rgba(128,96,201,.16)!important}
+.ro-stat .v,.eyebrow{color:#8060c9!important}
+.ro-table th,th{background:#f1eaff!important;color:#655382!important}
+.products-intro{background:linear-gradient(110deg,#eee5ff,#f8f1ff)!important;border-color:#e5d9f8!important}
+.product-count-mark{color:#7858bd!important;border-color:#e3d7f8!important}
+.kawaii-decor{display:none!important}
+*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;scroll-behavior:auto!important}
+:where(button,[role="button"],.btn,.nav-item,.card,a){transition:none!important}
+:where(button,[role="button"],.btn,.nav-item,.card):active,a:active{transform:none!important;filter:none!important;box-shadow:none!important}
+:where(button,[role="button"],.btn,.nav-item,a):focus-visible{outline-color:#a88be9!important}
+@media(hover:hover){:where(button,[role="button"],.btn,.nav-item):hover{filter:none!important;box-shadow:none!important}.card:hover{box-shadow:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 
 </style>
 </head>
@@ -352,7 +370,7 @@ button:not(.nav-item), .nav-item, .ro-box input, .ro-box select, .ro-box textare
     const t=titles[name]||titles.sales;
     const eyebrow=document.getElementById('viewEyebrow'),title=document.getElementById('viewTitle'),desc=document.getElementById('viewDescription');
     if(eyebrow)eyebrow.textContent=t[0];if(title)title.textContent=t[1];if(desc)desc.textContent=t[2];
-    const content=document.querySelector('.admin-main');if(content)content.scrollIntoView({behavior:'auto',block:'start'});
+    const content=document.querySelector('.admin-main');if(content)content.scrollIntoView({behavior:'smooth',block:'start'});
   }
   navItems.forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 })();
@@ -574,7 +592,7 @@ document.getElementById('filterHistory').addEventListener('click',renderOrders);
 document.getElementById('orderRows').addEventListener('click',async e=>{
  const edit=e.target.closest('[data-order-edit]');
  if(edit){const o=orders.find(x=>String(x.id)===edit.dataset.orderEdit);if(!o)return;editingOrderId=o.id;
-  document.getElementById('orderDate').value=o.order_date;document.getElementById('orderBuyerType').value=o.buyer_type;document.getElementById('orderProductType').value=o.product_type;document.getElementById('orderProductName').value=o.product_name;document.getElementById('orderCoins').value=o.coins;document.getElementById('orderCoins').readOnly=false;document.getElementById('orderQuantity').value=o.quantity;document.getElementById('orderUnitPrice').value=o.unit_price;document.getElementById('orderUnitCost').value=o.cost_price??'';document.getElementById('orderCustomerName').value=o.customer_name||'';document.getElementById('orderAgentName').value=o.agent_name||'';document.getElementById('orderNotes').value=o.notes||'';document.getElementById('orderRateSelect').value='';document.getElementById('orderCustomCoins').checked=true;document.getElementById('saveOrder').textContent='บันทึกการแก้ไขออเดอร์';document.getElementById('cancelOrderEdit').style.display='inline-block';orderStatus.textContent='กำลังแก้ไขออเดอร์ #'+o.id+' — ราคาที่กรอกจะถูกบันทึกเฉพาะออเดอร์นี้';updateOrderCalc();document.getElementById('orderForm').scrollIntoView({behavior:'auto',block:'start'});return;}
+  document.getElementById('orderDate').value=o.order_date;document.getElementById('orderBuyerType').value=o.buyer_type;document.getElementById('orderProductType').value=o.product_type;document.getElementById('orderProductName').value=o.product_name;document.getElementById('orderCoins').value=o.coins;document.getElementById('orderCoins').readOnly=false;document.getElementById('orderQuantity').value=o.quantity;document.getElementById('orderUnitPrice').value=o.unit_price;document.getElementById('orderUnitCost').value=o.cost_price??'';document.getElementById('orderCustomerName').value=o.customer_name||'';document.getElementById('orderAgentName').value=o.agent_name||'';document.getElementById('orderNotes').value=o.notes||'';document.getElementById('orderRateSelect').value='';document.getElementById('orderCustomCoins').checked=true;document.getElementById('saveOrder').textContent='บันทึกการแก้ไขออเดอร์';document.getElementById('cancelOrderEdit').style.display='inline-block';orderStatus.textContent='กำลังแก้ไขออเดอร์ #'+o.id+' — ราคาที่กรอกจะถูกบันทึกเฉพาะออเดอร์นี้';updateOrderCalc();document.getElementById('orderForm').scrollIntoView({behavior:'smooth',block:'start'});return;}
  const b=e.target.closest('[data-order-delete]');if(!b)return;if(!confirm('ต้องการลบออเดอร์นี้หรือไม่? การลบจะมีผลกับรายงานด้วย'))return;
  const {error}=await supabase.from('order_records').delete().eq('id',b.dataset.orderDelete);if(error){alert('ลบออเดอร์ไม่สำเร็จ: '+error.message);return;}await loadOrders();
 });
@@ -586,7 +604,7 @@ function resetTopupForm(){editingTopupId=null;topupForm.reset();document.getElem
 async function loadTopups(){const {data,error}=await supabase.from('coin_topups').select('id,topup_date,coins_received,amount_paid,notes,created_at').order('topup_date',{ascending:false}).order('id',{ascending:false}).limit(1000);if(error){topupRows.innerHTML='<tr><td colspan="6">โหลดประวัติเติมเหรียญไม่สำเร็จ: '+esc(error.message)+' — ตรวจสอบว่ารัน SQL เวอร์ชันล่าสุดแล้ว</td></tr>';return;}topups=data||[];renderTopups();}
 function renderTopups(){topupRows.innerHTML=topups.length?topups.map(t=>'<tr><td>'+esc(t.topup_date)+'</td><td>'+numRO(t.coins_received)+'</td><td>'+moneyRO(t.amount_paid)+'</td><td>'+moneyRO(Number(t.amount_paid)/Number(t.coins_received))+'</td><td>'+esc(t.notes||'—')+'</td><td class="actions"><button type="button" class="back" data-topup-edit="'+esc(t.id)+'">แก้ไข</button><button type="button" class="danger" data-topup-delete="'+esc(t.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">ยังไม่มีประวัติเติมเหรียญ</td></tr>'; }
 topupForm.addEventListener('submit',async e=>{e.preventDefault();const save=document.getElementById('saveTopup');save.disabled=true;topupStatus.textContent='กำลังบันทึก...';try{const coins=Number(document.getElementById('topupCoins').value),cost=Number(document.getElementById('topupCost').value);if(!Number.isInteger(coins)||coins<1||!Number.isFinite(cost)||cost<0)throw new Error('ตรวจสอบจำนวนเหรียญและต้นทุน');const payload={topup_date:document.getElementById('topupDate').value,coins_received:coins,amount_paid:cost,notes:document.getElementById('topupNote').value.trim()||null};const result=editingTopupId!==null?await supabase.from('coin_topups').update(payload).eq('id',editingTopupId):await supabase.from('coin_topups').insert(payload);if(result.error)throw result.error;topupStatus.textContent=editingTopupId!==null?'แก้ไขรายการเติมเหรียญแล้ว':'บันทึกรายการเติมเหรียญแล้ว';resetTopupForm();await loadTopups();}catch(err){topupStatus.textContent='บันทึกไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}save.disabled=false;});
-topupRows.addEventListener('click',async e=>{const edit=e.target.closest('[data-topup-edit]'),del=e.target.closest('[data-topup-delete]');if(edit){const t=topups.find(x=>String(x.id)===edit.dataset.topupEdit);if(!t)return;editingTopupId=t.id;document.getElementById('topupDate').value=t.topup_date;document.getElementById('topupCoins').value=t.coins_received;document.getElementById('topupCost').value=t.amount_paid;document.getElementById('topupNote').value=t.notes||'';document.getElementById('saveTopup').textContent='บันทึกการแก้ไข';document.getElementById('cancelTopupEdit').style.display='inline-block';topupStatus.textContent='กำลังแก้ไขรายการเติมเหรียญ #'+t.id;updateTopupUnitCost();topupForm.scrollIntoView({behavior:'auto',block:'start'});return;}if(del){if(!confirm('ต้องการลบรายการเติมเหรียญนี้หรือไม่?'))return;const {error}=await supabase.from('coin_topups').delete().eq('id',del.dataset.topupDelete);if(error){alert('ลบรายการไม่สำเร็จ: '+error.message);return;}await loadTopups();}});
+topupRows.addEventListener('click',async e=>{const edit=e.target.closest('[data-topup-edit]'),del=e.target.closest('[data-topup-delete]');if(edit){const t=topups.find(x=>String(x.id)===edit.dataset.topupEdit);if(!t)return;editingTopupId=t.id;document.getElementById('topupDate').value=t.topup_date;document.getElementById('topupCoins').value=t.coins_received;document.getElementById('topupCost').value=t.amount_paid;document.getElementById('topupNote').value=t.notes||'';document.getElementById('saveTopup').textContent='บันทึกการแก้ไข';document.getElementById('cancelTopupEdit').style.display='inline-block';topupStatus.textContent='กำลังแก้ไขรายการเติมเหรียญ #'+t.id;updateTopupUnitCost();topupForm.scrollIntoView({behavior:'smooth',block:'start'});return;}if(del){if(!confirm('ต้องการลบรายการเติมเหรียญนี้หรือไม่?'))return;const {error}=await supabase.from('coin_topups').delete().eq('id',del.dataset.topupDelete);if(error){alert('ลบรายการไม่สำเร็จ: '+error.message);return;}await loadTopups();}});
 document.getElementById('cancelTopupEdit').addEventListener('click',()=>{resetTopupForm();topupStatus.textContent='ยกเลิกการแก้ไขแล้ว';});
 async function initRateOrders(){await loadRates();await loadOrders();await loadTopups();if(rates.length===0)rateStatus.textContent='ตั้งค่าตารางแล้ว แต่ยังไม่มีเรทเริ่มต้น';}
 
