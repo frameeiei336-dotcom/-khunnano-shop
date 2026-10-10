@@ -1123,6 +1123,19 @@ body[data-theme="light"] .brand-header::after,body[data-theme="light"] .search-c
 }
 @media(max-width:380px){body[data-theme="light"] .brand-header{padding-left:78px!important}.khunnano-cat-art-layer .cat-art-header{width:92px}.khunnano-cat-art-layer .cat-art-search{width:76px;top:375px}.khunnano-cat-art-layer .cat-art-banner-left{width:85px}.khunnano-cat-art-layer .cat-art-banner-right{width:82px}}
 @media(prefers-reduced-motion:reduce){.khunnano-cat-art-layer .cat-art,.khunnano-cat-art-layer .cat-art-spark{animation:none!important}}
+<style id="khunnano-stop-linestore-bounce">
+/* Keep the LINE Store promo banner and its decorations completely still. */
+body[data-theme="light"] .linestore-banner,
+body[data-theme="light"] .linestore-banner *,
+body[data-theme="light"] .linestore-banner::before,
+body[data-theme="light"] .linestore-banner::after {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+.floating-heart { display: none !important; animation: none !important; }
+.khunnano-cat-art-layer .cat-art-banner-left,
+.khunnano-cat-art-layer .cat-art-banner-right { animation: none !important; transform: none !important; }
 </style>
 
 </head>
@@ -2196,7 +2209,7 @@ apply();
             }, false);
         }
 
-        setInterval(createHeart, 1200);
+        // Disabled: floating hearts made the LINE Store banner look like it was bouncing.
 
         const searchInput = get('searchInput');
         if (searchInput) {
@@ -2700,5 +2713,18 @@ html, body, body *, body *::before, body *::after { animation: none !important; 
 @media (prefers-reduced-motion: reduce) { html, body, body *, body *::before, body *::after { animation: none !important; transition: none !important; } }
 </style>
 
+
+<style id="khunnano-search-cat-still-fix">
+/* The decorative cat beside the search field must stay still; only page controls should respond. */
+.khunnano-cat-art-layer .cat-art-search,
+.khunnano-cat-art-layer .cat-art-search *,
+.search-container .khunnano-original-cat-mascot,
+.search-container .khunnano-floating-cat {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  translate: none !important;
+}
+</style>
 </body>
 </html>
