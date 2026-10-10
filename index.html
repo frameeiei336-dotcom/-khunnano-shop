@@ -1253,6 +1253,16 @@ body[data-theme="light"] .linestore-banner > a { position: relative !important; 
 }
 </style>
 
+
+<style id="khunnano-member-menu-layer-fix">
+/* Fix: keep the hamburger dropdown above decorative layers and prevent clipping. */
+.khunnano-member-tools { position: relative !important; z-index: 100001 !important; }
+.khunnano-menu-btn { position: relative !important; z-index: 100002 !important; pointer-events: auto !important; }
+.khunnano-member-menu, .khunnano-member-menu.open { position: fixed !important; z-index: 100003 !important; pointer-events: auto !important; isolation: isolate; }
+body[data-theme="light"] .app-screen { overflow: visible !important; }
+.khunnano-member-menu.open .khunnano-menu-item { position: relative; z-index: 1; pointer-events: auto !important; }
+</style>
+
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
