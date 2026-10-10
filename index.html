@@ -940,6 +940,69 @@ input:focus,textarea:focus,select:focus { outline:2px solid #c9aff2 !important; 
 </style>
 
 <style id="khunnano-tab-scroll-spacing">#productGrid,.section-title,.category-tabs{scroll-margin-bottom:100px;scroll-margin-top:18px}</style>
+
+<style id="khunnano-profile-popup-animation">
+/* Profile: centered modal popup, not a bottom sheet. */
+#khunnanoProfileOverlay.khunnano-profile-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10010 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  background: rgba(38, 23, 55, .48) !important;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+}
+#khunnanoProfileOverlay.khunnano-profile-overlay.open,
+#khunnanoProfileOverlay.khunnano-profile-overlay[aria-hidden="false"] {
+  display: flex !important;
+  animation: khunnanoProfileBackdropIn .22s ease-out both !important;
+}
+#khunnanoProfileOverlay.khunnano-profile-overlay[aria-hidden="true"] {
+  display: none !important;
+  pointer-events: none !important;
+}
+#khunnanoProfileOverlay .khunnano-profile-box {
+  position: relative !important;
+  flex: 0 1 auto !important;
+  width: min(430px, 100%) !important;
+  max-height: calc(100vh - 32px - env(safe-area-inset-bottom, 0px)) !important;
+  max-height: calc(100dvh - 32px - env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto !important;
+  margin: auto !important;
+  border-radius: 24px !important;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  background: var(--screen-bg, #fffaff) !important;
+  color: var(--text-main, #453354) !important;
+  border: 1px solid #ddc9f4 !important;
+  box-shadow: 0 18px 55px rgba(30, 15, 45, .28) !important;
+  -webkit-overflow-scrolling: touch;
+  transform-origin: center center;
+  animation: khunnanoProfilePopupIn .28s cubic-bezier(.2,.85,.25,1.15) both !important;
+}
+@keyframes khunnanoProfileBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes khunnanoProfilePopupIn {
+  from { opacity: 0; transform: translateY(14px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (min-width: 700px) {
+  #khunnanoProfileOverlay.khunnano-profile-overlay { padding: 20px !important; }
+  #khunnanoProfileOverlay .khunnano-profile-box { max-height: 88vh !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #khunnanoProfileOverlay.khunnano-profile-overlay.open,
+  #khunnanoProfileOverlay .khunnano-profile-box { animation: none !important; }
+}
+</style>
+
 </head>
 <body data-theme="light">
 <input aria-hidden="true" id="popupToggle" type="checkbox"/>
