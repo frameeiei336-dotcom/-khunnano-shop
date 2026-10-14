@@ -288,6 +288,7 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
 
   <div style="margin-top:18px;font-weight:800">📚 ประวัติออเดอร์</div>
   <div class="ro-filter"><div class="ro-field"><label for="historyCategory">กรองประเภทสินค้า</label><select id="historyCategory"><option value="">ทุกประเภท</option><option value="sticker">สติกเกอร์ LINE</option><option value="theme">ธีม</option><option value="emoji">อีโมจิ</option><option value="melody">เมโลดี้</option></select></div><div class="ro-field"><label for="historyBuyer">กรองผู้ซื้อ</label><select id="historyBuyer"><option value="">ทุกประเภทผู้ซื้อ</option><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div><button class="primary" id="filterHistory" type="button">กรองรายการ</button></div>
+  <div style="display:flex;justify-content:flex-end;margin:10px 0"><button class="back" id="toggleOrderHistory" type="button" aria-expanded="false" style="display:none">ดูเพิ่มเติม</button></div>
   <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า / เหรียญ</th><th>ผู้ซื้อ</th><th>จำนวน</th><th>ราคา ณ วันขาย</th><th>ยอดขาย</th><th>กำไร</th><th>จัดการ</th></tr></thead><tbody id="orderRows"><tr><td colspan="9">กำลังโหลด...</td></tr></tbody></table></div>
 </div>
     </section>
@@ -493,13 +494,19 @@ async function loadOrders(){
  if(error){orders=[];document.getElementById('orderRows').innerHTML='<tr><td colspan="9">โหลดออเดอร์ไม่สำเร็จ: '+esc(error.message)+' — ตรวจสอบว่ารัน SQL ตั้งค่าระบบแล้ว</td></tr>';document.getElementById('reportCategoryRows').innerHTML='<tr><td colspan="4">ยังโหลดรายงานไม่ได้</td></tr>';return;}
  orders=data||[];renderOrders();renderReport();
 }
+let orderHistoryExpanded=false;
+const orderHistoryToggle=document.getElementById('toggleOrderHistory');
+orderHistoryToggle.addEventListener('click',()=>{orderHistoryExpanded=!orderHistoryExpanded;renderOrders();});
 function filteredHistory(){
  const cat=document.getElementById('historyCategory').value,buyer=document.getElementById('historyBuyer').value;
  return orders.filter(o=>(!cat||o.product_type===cat)&&(!buyer||o.buyer_type===buyer));
 }
 function renderOrders(){
  const list=filteredHistory();
- document.getElementById('orderRows').innerHTML=list.length?list.slice(0,300).map(o=>'<tr><td>'+esc(o.order_date)+'</td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o.cost_price==null?'—':moneyRO(o.cost_price))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o.profit_amount==null?'—':moneyRO(o.profit_amount))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
+ orderHistoryToggle.style.display=list.length>5?'inline-flex':'none';
+ orderHistoryToggle.textContent=orderHistoryExpanded?'แสดงน้อยลง':'ดูเพิ่มเติม ('+numRO(Math.max(0,list.length-5))+' รายการ)';
+ orderHistoryToggle.setAttribute('aria-expanded',String(orderHistoryExpanded));
+ document.getElementById('orderRows').innerHTML=list.length?list.slice(0,orderHistoryExpanded?300:5).map(o=>'<tr><td>'+esc(o.order_date)+'</td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o.cost_price==null?'—':moneyRO(o.cost_price))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o.profit_amount==null?'—':moneyRO(o.profit_amount))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
 }
 function renderReport(){
  const month=document.getElementById('reportMonth').value;
