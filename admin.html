@@ -793,7 +793,7 @@ document.getElementById('logout').addEventListener('click',async()=>{await windo
 (()=>{const panel=document.getElementById('orderQuickPanel'),toggle=document.getElementById('orderQuickToggle'),close=document.getElementById('orderQuickClose'),content=document.getElementById('orderQuickContent');
  function refresh(){const body=document.getElementById('orderRows');if(!body){content.innerHTML='<div class="empty">เปิดส่วนรายการออเดอร์เพื่อดูรายการล่าสุด</div>';return;}const rows=[...body.querySelectorAll('tr')].slice(0,5);if(!rows.length){content.innerHTML='<div class="empty">ยังไม่มีรายการออเดอร์</div>';return;}const table=document.createElement('table'),original=body.closest('table');if(original){const head=original.querySelector('thead');if(head)table.append(head.cloneNode(true));}const tb=document.createElement('tbody');rows.forEach(r=>tb.append(r.cloneNode(true)));table.append(tb);content.replaceChildren(table);}
  function setOpen(open){panel.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'📋 ซ่อนรายการล่าสุด':'📋 ดูรายการล่าสุด';if(open)refresh();}
- toggle.addEventListener('click',()=>setOpen(!panel.classList.contains('open')));close.addEventListener('click',()=>setOpen(false));const obs=new MutationObserver(()=>{if(panel.classList.contains('open'))refresh();});obs.observe(document.body,{childList:true,subtree:true});})();
+ toggle.addEventListener('click',()=>setOpen(!panel.classList.contains('open')));close.addEventListener('click',()=>setOpen(false));const orderRows=document.getElementById('orderRows');if(orderRows){const obs=new MutationObserver(()=>{if(panel.classList.contains('open'))refresh();});obs.observe(orderRows,{childList:true,subtree:true});}})();
 </script>
 
 </body>
