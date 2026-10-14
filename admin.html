@@ -446,34 +446,48 @@ rateForm.addEventListener('submit',async e=>{
  document.getElementById('saveRate').disabled=false;
 });
 function selectedRate(){return rates.find(r=>String(r.coins)===orderRateSelect.value)||null;}
-function inventorySnapshot(excludeOrderId=null, throughDate=null){
- // Replay dated stock events in chronological order using weighted-average cost.
- // Existing order costs stay frozen; orders without a saved cost use the average at that point.
+function fifoReplay(excludeOrderId=null, throughDate=null){
+ // FIFO replay: each purchase creates a cost lot; sales consume the oldest remaining lot first.
  const events=[];
  topups.forEach(t=>events.push({kind:'topup',date:String(t.topup_date||''),created:String(t.created_at||''),id:String(t.id),row:t}));
  orders.forEach(o=>{if(excludeOrderId!==null&&String(o.id)===String(excludeOrderId))return;events.push({kind:'order',date:String(o.order_date||''),created:String(o.created_at||''),id:String(o.id),row:o});});
  const cutoff=throughDate||'9999-12-31';
- const eligible=events.filter(e=>e.date&&e.date<=cutoff).sort((a,b)=>a.date.localeCompare(b.date)||a.created.localeCompare(b.created)||a.kind.localeCompare(b.kind)||a.id.localeCompare(b.id));
- let addedCoins=0,addedCost=0,soldCoins=0,knownCost=0,remainingCoins=0,remainingCost=0;
+ // On the same calendar day, use created_at where available; if tied, stock additions precede sales.
+ const eligible=events.filter(e=>e.date&&e.date<=cutoff).sort((a,b)=>a.date.localeCompare(b.date)||a.created.localeCompare(b.created)||((a.kind==='topup'?0:1)-(b.kind==='topup'?0:1))||a.id.localeCompare(b.id));
+ const lots=[]; const orderCosts={}; let addedCoins=0,addedCost=0,soldCoins=0,knownCost=0,unfundedCoins=0;
  for(const e of eligible){
   if(e.kind==='topup'){
    const c=Math.max(0,Number(e.row.coins_received)||0),v=Math.max(0,Number(e.row.amount_paid)||0);
-   addedCoins+=c;addedCost+=v;remainingCoins+=c;remainingCost+=v;
-  }else{
-   const o=e.row,c=Math.max(0,Number(o.coins)||0)*Math.max(1,Number(o.quantity)||1);
-   const frozen=o.total_cost==null?null:Math.max(0,Number(o.total_cost)||0);
-   const allocated=frozen===null?(remainingCoins>0&&remainingCost>=0?remainingCost/remainingCoins*c:null):frozen;
-   soldCoins+=c;
-   if(allocated!==null){knownCost+=allocated;remainingCost-=allocated;}
-   remainingCoins-=c;
+   if(c>0){lots.push({remaining:c,unitCost:v/c,topupId:e.row.id});addedCoins+=c;addedCost+=v;}
+   continue;
   }
+  const o=e.row,need=Math.max(0,Number(o.coins)||0)*Math.max(1,Number(o.quantity)||1); let remaining=need,cost=0,allocated=0;
+  for(const lot of lots){if(remaining<=0)break;if(lot.remaining<=0)continue;const take=Math.min(remaining,lot.remaining);cost+=take*lot.unitCost;lot.remaining-=take;remaining-=take;allocated+=take;}
+  soldCoins+=need;unfundedCoins+=remaining;
+  const complete=remaining<0.000001;
+  orderCosts[String(o.id)]={coins:need,cost:complete?Math.round(cost*100)/100:null,unitCost:complete&&need>0?Math.round((cost/Math.max(1,Number(o.quantity)||1))*100)/100:null,unfunded:remaining,complete};
+  if(complete)knownCost+=cost;
  }
- const valid=remainingCoins>0&&remainingCost>=-0.005&&remainingCost/remainingCoins>=0;
- return {addedCoins,addedCost,soldCoins,knownCost,remainingCoins,remainingCost:Math.max(0,remainingCost),unitCost:valid?Math.max(0,remainingCost/remainingCoins):null};
+ const remainingCoins=lots.reduce((n,l)=>n+l.remaining,0),remainingCost=lots.reduce((n,l)=>n+l.remaining*l.unitCost,0);
+ return {addedCoins,addedCost,soldCoins,knownCost:Math.round(knownCost*100)/100,remainingCoins,remainingCost:Math.round(remainingCost*100)/100,unitCost:remainingCoins>0?remainingCost/remainingCoins:null,unfundedCoins,orderCosts,_lots:lots};
+}
+function inventorySnapshot(excludeOrderId=null, throughDate=null){return fifoReplay(excludeOrderId,throughDate);}
+function fifoCostForOrder(o){return fifoReplay().orderCosts[String(o.id)]||null;}
+function displayOrder(o){
+ const f=fifoCostForOrder(o); if(!f||!f.complete)return {...o,_fifoCost:null,_fifoTotalCost:null,_fifoProfit:null,_fifoMissing:true};
+ const total=Number(o.total_amount??(Number(o.quantity||1)*Number(o.unit_price||0)));
+ const qty=Math.max(1,Number(o.quantity)||1);
+ return {...o,_fifoCost:Math.round(f.cost/qty*100)/100,_fifoTotalCost:f.cost,_fifoProfit:Math.round((total-f.cost)*100)/100,_fifoMissing:false};
+}
+function fifoDisplayOrders(list=orders){return list.map(displayOrder);}
+function fifoCostFromLots(lots,coinsNeeded){
+ let left=Math.max(0,Number(coinsNeeded)||0),cost=0;
+ for(const lot of (lots||[])){if(left<=0)break;const available=Math.max(0,Number(lot.remaining)||0);if(!available)continue;const take=Math.min(left,available);cost+=take*Number(lot.unitCost||0);left-=take;}
+ return left<0.000001?Math.round(cost*100)/100:null;
 }
 function suggestedUnitCostPerSet(){
- const coins=Number(document.getElementById('orderCoins').value||0),inv=inventorySnapshot(editingOrderId,document.getElementById('orderDate').value||null);
- return inv.unitCost!==null&&coins>0?Math.round(inv.unitCost*coins*100)/100:null;
+ const coins=Number(document.getElementById('orderCoins').value||0),qty=Math.max(1,Number(document.getElementById('orderQuantity').value)||1),inv=inventorySnapshot(editingOrderId,document.getElementById('orderDate').value||null);
+ if(coins<=0)return null;const total=fifoCostFromLots(inv._lots,coins*qty);return total===null?null:Math.round(total/qty*100)/100;
 }
 function updateOrderCalc(){
  const qty=Number(document.getElementById('orderQuantity').value||1),price=Number(document.getElementById('orderUnitPrice').value||0),costEl=document.getElementById('orderUnitCost');
@@ -482,7 +496,7 @@ function updateOrderCalc(){
  costEl.placeholder=suggested===null?'ยังไม่มีข้อมูลต้นทุนสต็อก':'คำนวณอัตโนมัติ: ฿'+suggested.toFixed(2)+' / ชุด';
  const revenue=qty*price,profit=suggested===null?null:qty*(price-suggested);
  const inv=inventorySnapshot(editingOrderId);
- const stockText=inv.remainingCoins>=0?'เหรียญคงเหลือก่อนขาย: '+numRO(inv.remainingCoins):'สต็อกติดลบ โปรดตรวจรายการเติม/ขาย';
+ const stockText=inv.unfundedCoins>0?'พบยอดขายที่ไม่มีล็อตรองรับ '+numRO(inv.unfundedCoins)+' เหรียญ — ตรวจประวัติเติม/ขาย':'เหรียญคงเหลือหลังรายการทั้งหมด: '+numRO(inv.remainingCoins)+' เหรียญ';
  document.getElementById('orderCalculation').textContent='ยอดขายรวม: '+moneyRO(revenue)+' · '+(profit===null?'กำไร: ยังไม่มีต้นทุนสต็อก':('กำไรโดยประมาณ: '+moneyRO(profit)))+' · '+stockText;
 }
 function applySelectedRate(){
@@ -518,17 +532,17 @@ function filteredHistory(){
  return orders.filter(o=>(!cat||o.product_type===cat)&&(!buyer||o.buyer_type===buyer));
 }
 function renderOrders(){
- const list=filteredHistory();
+ const list=fifoDisplayOrders(filteredHistory());
  orderHistoryToggle.style.display=list.length>5?'inline-flex':'none';
  orderHistoryToggle.textContent=orderHistoryExpanded?'แสดงน้อยลง':'ดูเพิ่มเติม ('+numRO(Math.max(0,list.length-5))+' รายการ)';
  orderHistoryToggle.setAttribute('aria-expanded',String(orderHistoryExpanded));
- document.getElementById('orderRows').innerHTML=list.length?list.slice(0,orderHistoryExpanded?300:5).map(o=>'<tr><td>'+esc(o.order_date)+'<br><small style="color:#75677e">บันทึก: '+esc(thaiDateTimeRO(o.created_at))+'</small></td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o.cost_price==null?'—':moneyRO(o.cost_price))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o.profit_amount==null?'—':moneyRO(o.profit_amount))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
+ document.getElementById('orderRows').innerHTML=list.length?list.slice(0,orderHistoryExpanded?300:5).map(o=>'<tr><td>'+esc(o.order_date)+'<br><small style="color:#75677e">บันทึก: '+esc(thaiDateTimeRO(o.created_at))+'</small></td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o._fifoMissing?'ตรวจสอบสต็อก':moneyRO(o._fifoCost))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o._fifoMissing?'—':moneyRO(o._fifoProfit))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
 }
 function renderReport(){
  const month=document.getElementById('reportMonth').value;
- const list=orders.filter(o=>String(o.order_date||'').slice(0,7)===month);
+ const list=fifoDisplayOrders(orders.filter(o=>String(o.order_date||'').slice(0,7)===month));
  const revenue=list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0);
- const known=list.filter(o=>o.total_cost!=null),profit=known.reduce((s,o)=>s+Number(o.profit_amount||0),0);
+ const known=list.filter(o=>!o._fifoMissing),profit=known.reduce((s,o)=>s+Number(o._fifoProfit||0),0);
  document.getElementById('reportRevenue').textContent=moneyRO(revenue);
  document.getElementById('reportOrders').textContent=numRO(list.length);
  document.getElementById('reportCoins').textContent=numRO(coins);
@@ -547,7 +561,9 @@ orderForm.addEventListener('submit',async e=>{
   const coinsNeeded=coins*qty;
   if(inv.remainingCoins<coinsNeeded)throw new Error('เหรียญในสต็อกไม่พอ: คงเหลือ '+numRO(inv.remainingCoins)+' เหรียญ แต่รายการนี้ใช้ '+numRO(coinsNeeded)+' เหรียญ');
   if(inv.unitCost===null)throw new Error('ยังคำนวณต้นทุนไม่ได้ กรุณาบันทึกยอดยกมาหรือรายการเติมเหรียญก่อน');
-  const cost=Math.round(inv.unitCost*coins*100)/100;
+  const fifo=fifoReplay(editingOrderId,document.getElementById('orderDate').value||null);
+  const needed=coins*qty; const rawCost=fifoCostFromLots(fifo._lots,needed);
+  const cost=rawCost===null?null:Math.round(rawCost/qty*100)/100; if(cost===null)throw new Error('สต็อก FIFO ไม่พอสำหรับวันที่ของออร์เดอร์นี้ หรือมีประวัติขายที่ไม่มีล็อตรองรับ กรุณาตรวจรายการเติมและขายก่อน');
   const total=Math.round(qty*price*100)/100,totalCost=Math.round(qty*cost*100)/100;
   const rate=selectedRate(),payload={order_date:document.getElementById('orderDate').value,buyer_type:document.getElementById('orderBuyerType').value,product_type:document.getElementById('orderProductType').value,product_name:document.getElementById('orderProductName').value.trim(),coins,quantity:qty,unit_price:price,cost_price:cost,total_amount:total,total_cost:totalCost,profit_amount:totalCost===null?null:Math.round((total-totalCost)*100)/100,customer_name:document.getElementById('orderCustomerName').value.trim()||null,agent_name:document.getElementById('orderAgentName').value.trim()||null,notes:document.getElementById('orderNotes').value.trim()||null,rate_coins:rate&&!orderCustomCoins.checked?rate.coins:null,rate_price:rate&&!orderCustomCoins.checked?(document.getElementById('orderBuyerType').value==='agent'?rate.agent_price:rate.customer_price):null};
   let result;
@@ -562,9 +578,9 @@ function reportData(){
  const month=document.getElementById('reportMonth').value;
  if(!month){alert('กรุณาเลือกเดือนที่ต้องการดาวน์โหลดรายงาน');return null;}
  renderReport();
- const list=orders.filter(o=>String(o.order_date||'').slice(0,7)===month);
+ const list=fifoDisplayOrders(orders.filter(o=>String(o.order_date||'').slice(0,7)===month));
  const headers=['วันที่','ประเภทสินค้า','ประเภทผู้ซื้อ','ชื่อสินค้า','จำนวนเหรียญ','จำนวนชุด','ราคาต่อชุด (บาท)','ต้นทุนต่อชุด (บาท)','ยอดขายรวม (บาท)','ต้นทุนรวม (บาท)','กำไร (บาท)','ชื่อลูกค้า','ชื่อตัวแทน','หมายเหตุ'];
- const rows=list.map(o=>[o.order_date,categoryNames[o.product_type]||o.product_type,buyerNames[o.buyer_type]||o.buyer_type,o.product_name,o.coins,o.quantity,o.unit_price,o.cost_price??'',o.total_amount,o.total_cost??'',o.profit_amount??'',o.customer_name||'',o.agent_name||'',o.notes||'']);
+ const rows=list.map(o=>[o.order_date,categoryNames[o.product_type]||o.product_type,buyerNames[o.buyer_type]||o.buyer_type,o.product_name,o.coins,o.quantity,o.unit_price,o._fifoMissing?'ตรวจสอบสต็อก':o._fifoCost,o.total_amount,o._fifoMissing?'':o._fifoTotalCost,o._fifoMissing?'':o._fifoProfit,o.customer_name||'',o.agent_name||'',o.notes||'']);
  return {month,list,headers,rows};
 }
 async function loadXlsxLibrary(){
@@ -590,7 +606,7 @@ function downloadBlobRO(blob,filename){
 function escapeCsvRO(v){const s=String(v??'');return '"'+s.replace(/"/g,'""')+'"';}
 function downloadExcelFallbackRO(data){
  // Excel-compatible HTML workbook fallback when the XLSX library/CDN is unavailable.
- const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
+ const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรจาก FIFO ที่คำนวณได้',data.list.some(o=>!o._fifoMissing)?data.list.filter(o=>!o._fifoMissing).reduce((s,o)=>s+Number(o._fifoProfit||0),0):'ไม่มีข้อมูลต้นทุนที่ยืนยันได้']];
  const category=[['ประเภทสินค้า','จำนวนออเดอร์','จำนวนชุด','ยอดขายรวม (บาท)'],...Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return [label,arr.length,arr.reduce((n,o)=>n+Number(o.quantity||0),0),arr.reduce((n,o)=>n+Number(o.total_amount||0),0)];})];
  const table=(rows)=>'<table border="1"><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
  const html='<html><head><meta charset="utf-8"></head><body><h2>สรุป</h2>'+table(summary)+'<h2>รายการขาย</h2>'+table([data.headers,...data.rows])+'<h2>แยกประเภท</h2>'+table(category)+'</body></html>';
@@ -604,7 +620,7 @@ document.getElementById('downloadReportExcel').addEventListener('click',async()=
   button.disabled=true;
   try{
    const XLSX=await loadXlsxLibrary();
-   const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
+   const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรจาก FIFO ที่คำนวณได้',data.list.some(o=>!o._fifoMissing)?data.list.filter(o=>!o._fifoMissing).reduce((s,o)=>s+Number(o._fifoProfit||0),0):'ไม่มีข้อมูลต้นทุนที่ยืนยันได้']];
    const wb=XLSX.utils.book_new();
    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'สรุป');
    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([data.headers,...data.rows]),'รายการขาย');
@@ -627,9 +643,9 @@ document.getElementById('downloadReportPdf').addEventListener('click',()=>{
   const data=reportData();
   if(!data){if(printWindow)printWindow.close();reportStatus('กรุณาเลือกเดือนก่อนดาวน์โหลด',true);return;}
   if(!printWindow){reportStatus('เบราว์เซอร์บล็อกหน้าต่างรายงาน กรุณาอนุญาตป๊อปอัปแล้วลองใหม่',true);alert('เบราว์เซอร์บล็อกหน้าต่างรายงาน กรุณาอนุญาตป๊อปอัปสำหรับเว็บไซต์นี้แล้วลองใหม่');return;}
-  const revenue=data.list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0),known=data.list.filter(o=>o.total_cost!=null),profit=known.length?known.reduce((s,o)=>s+Number(o.profit_amount||0),0):null;
+  const revenue=data.list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0),known=data.list.filter(o=>!o._fifoMissing),profit=known.length?known.reduce((s,o)=>s+Number(o._fifoProfit||0),0):null;
   const escPrint=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const detailRows=data.list.map(o=>'<tr><td>'+escPrint(o.order_date)+'</td><td>'+escPrint(categoryNames[o.product_type]||o.product_type)+'</td><td>'+escPrint(buyerNames[o.buyer_type]||o.buyer_type)+'</td><td>'+escPrint(o.product_name)+'</td><td>'+Number(o.coins||0).toLocaleString('th-TH')+'</td><td>'+Number(o.quantity||0).toLocaleString('th-TH')+'</td><td>'+Number(o.unit_price||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.cost_price==null?'—':Number(o.cost_price).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+Number(o.total_amount||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o.total_cost==null?'—':Number(o.total_cost).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+(o.profit_amount==null?'—':Number(o.profit_amount).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+escPrint(o.customer_name||'—')+'</td><td>'+escPrint(o.agent_name||'—')+'</td><td>'+escPrint(o.notes||'')+'</td></tr>').join('');
+  const detailRows=data.list.map(o=>'<tr><td>'+escPrint(o.order_date)+'</td><td>'+escPrint(categoryNames[o.product_type]||o.product_type)+'</td><td>'+escPrint(buyerNames[o.buyer_type]||o.buyer_type)+'</td><td>'+escPrint(o.product_name)+'</td><td>'+Number(o.coins||0).toLocaleString('th-TH')+'</td><td>'+Number(o.quantity||0).toLocaleString('th-TH')+'</td><td>'+Number(o.unit_price||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o._fifoMissing?'ตรวจสอบสต็อก':Number(o._fifoCost).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+Number(o.total_amount||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td>'+(o._fifoMissing?'—':Number(o._fifoTotalCost).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+(o._fifoMissing?'—':Number(o._fifoProfit).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</td><td>'+escPrint(o.customer_name||'—')+'</td><td>'+escPrint(o.agent_name||'—')+'</td><td>'+escPrint(o.notes||'')+'</td></tr>').join('');
   const categoryRows=Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return '<tr><td>'+label+'</td><td>'+arr.length+'</td><td>'+arr.reduce((s,o)=>s+Number(o.quantity||0),0)+'</td><td>฿'+arr.reduce((s,o)=>s+Number(o.total_amount||0),0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';}).join('');
   printWindow.document.open();
   printWindow.document.write('<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>รายงาน STICKER KHUNNANO '+escPrint(data.month)+'</title><style>body{font-family:Arial,Tahoma,sans-serif;color:#222;padding:20px}h1{font-size:22px}h2{font-size:16px;margin-top:24px}.summary{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0}.summary div{border:1px solid #bbb;padding:10px;min-width:120px}table{border-collapse:collapse;width:100%;font-size:10px;margin-top:10px}th,td{border:1px solid #aaa;padding:5px;text-align:left;vertical-align:top}th{background:#eee}.note{font-size:11px;color:#555;margin-top:12px}.actions{margin-bottom:16px}button{padding:8px 14px}@media print{body{padding:0}.actions{display:none}table{font-size:8px;page-break-inside:auto}tr{page-break-inside:avoid}thead{display:table-header-group}@page{size:A4 landscape;margin:10mm}}</style></head><body><div class="actions"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div><h1>รายงานยอดขาย STICKER KHUNNANO</h1><div>ประจำเดือน: '+escPrint(data.month)+'</div><div class="summary"><div>ยอดขายรวม<br><b>฿'+revenue.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+'</b></div><div>จำนวนออเดอร์<br><b>'+data.list.length.toLocaleString('th-TH')+'</b></div><div>เหรียญรวม<br><b>'+coins.toLocaleString('th-TH')+'</b></div><div>กำไรที่มีต้นทุน<br><b>'+(profit===null?'—':'฿'+profit.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}))+'</b></div></div><h2>สรุปตามประเภทสินค้า</h2><table><thead><tr><th>ประเภทสินค้า</th><th>จำนวนออเดอร์</th><th>จำนวนชุด</th><th>ยอดขายรวม</th></tr></thead><tbody>'+categoryRows+'</tbody></table><h2>รายละเอียดออเดอร์</h2><table><thead><tr>'+data.headers.map(h=>'<th>'+escPrint(h)+'</th>').join('')+'</tr></thead><tbody>'+(detailRows||'<tr><td colspan="14">ไม่มีออเดอร์ในเดือนนี้</td></tr>')+'</tbody></table><p class="note">หมายเหตุ: กำไรคำนวณจากรายการที่มีการบันทึกต้นทุนไว้เท่านั้น</p><script>window.onload=function(){setTimeout(function(){window.print()},500)};<\/script></body></html>');
@@ -654,7 +670,7 @@ function resetTopupForm(){editingTopupId=null;topupForm.reset();document.getElem
 function topupNoteWithType(type,note){const clean=(note||'').replace(/^\[(ยอดยกมา|ซื้อใหม่)\]\s*/,'').trim();return (type==='opening'?'[ยอดยกมา] ':'[ซื้อใหม่] ')+(clean|| (type==='opening'?'ยอดคงเหลือและต้นทุนเดิม':'รายการซื้อเหรียญใหม่'));}
 async function loadTopups(){const {data,error}=await supabase.from('coin_topups').select('id,topup_date,coins_received,amount_paid,notes,created_at').order('topup_date',{ascending:false}).order('id',{ascending:false}).limit(1000);if(error){topupRows.innerHTML='<tr><td colspan="6">โหลดประวัติเติมเหรียญไม่สำเร็จ: '+esc(error.message)+' — ตรวจสอบว่ารัน SQL เวอร์ชันล่าสุดแล้ว</td></tr>';return;}topups=data||[];renderTopups();}
 function renderTopups(){topupRows.innerHTML=topups.length?topups.map(t=>'<tr><td>'+esc(t.topup_date)+'<br><small style="color:#75677e">บันทึก: '+esc(thaiDateTimeRO(t.created_at))+'</small></td><td>'+numRO(t.coins_received)+'</td><td>'+moneyRO(t.amount_paid)+'</td><td>'+moneyRO(Number(t.amount_paid)/Number(t.coins_received))+'</td><td>'+esc(t.notes||'—')+'</td><td class="actions"><button type="button" class="back" data-topup-edit="'+esc(t.id)+'">แก้ไข</button><button type="button" class="danger" data-topup-delete="'+esc(t.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">ยังไม่มีประวัติเติมเหรียญ</td></tr>'; }
-topupForm.addEventListener('submit',async e=>{e.preventDefault();const save=document.getElementById('saveTopup');save.disabled=true;topupStatus.textContent='กำลังบันทึก...';try{const coins=Number(document.getElementById('topupCoins').value),cost=Number(document.getElementById('topupCost').value),type=document.getElementById('topupEntryType').value;if(!Number.isInteger(coins)||coins<1||!Number.isFinite(cost)||cost<0)throw new Error('ตรวจสอบจำนวนเหรียญและต้นทุน');if(type==='opening'&&!confirm('ยืนยันบันทึกเป็น “ยอดยกมาเดิม” ใช่ไหม? รายการนี้จะถูกเก็บในประวัติพร้อมป้ายกำกับยอดยกมา และไม่ได้ปรับสต็อกอัตโนมัติ')){save.disabled=false;return;}const payload={topup_date:document.getElementById('topupDate').value,coins_received:coins,amount_paid:cost,notes:topupNoteWithType(type,document.getElementById('topupNote').value)};const result=editingTopupId!==null?await supabase.from('coin_topups').update(payload).eq('id',editingTopupId):await supabase.from('coin_topups').insert(payload);if(result.error)throw result.error;topupStatus.textContent=editingTopupId!==null?'แก้ไขรายการแล้ว':(type==='opening'?'บันทึกยอดยกมาแล้ว':'บันทึกรายการซื้อเหรียญแล้ว');resetTopupForm();await loadTopups();updateOrderCalc();}catch(err){topupStatus.textContent='บันทึกไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}save.disabled=false;});
+topupForm.addEventListener('submit',async e=>{e.preventDefault();const save=document.getElementById('saveTopup');save.disabled=true;topupStatus.textContent='กำลังบันทึก...';try{const coins=Number(document.getElementById('topupCoins').value),cost=Number(document.getElementById('topupCost').value),type=document.getElementById('topupEntryType').value;if(!Number.isInteger(coins)||coins<1||!Number.isFinite(cost)||cost<0)throw new Error('ตรวจสอบจำนวนเหรียญและต้นทุน');if(type==='opening'&&!confirm('ยืนยันบันทึกเป็น “ยอดยกมาเดิม” ใช่ไหม? รายการนี้จะเป็นล็อต FIFO เริ่มต้นตามวันที่และต้นทุนที่กรอก')){save.disabled=false;return;}const payload={topup_date:document.getElementById('topupDate').value,coins_received:coins,amount_paid:cost,notes:topupNoteWithType(type,document.getElementById('topupNote').value)};const result=editingTopupId!==null?await supabase.from('coin_topups').update(payload).eq('id',editingTopupId):await supabase.from('coin_topups').insert(payload);if(result.error)throw result.error;topupStatus.textContent=editingTopupId!==null?'แก้ไขรายการแล้ว':(type==='opening'?'บันทึกยอดยกมาแล้ว':'บันทึกรายการซื้อเหรียญแล้ว');resetTopupForm();await loadTopups();updateOrderCalc();}catch(err){topupStatus.textContent='บันทึกไม่สำเร็จ: '+(err.message||'เกิดข้อผิดพลาด');}save.disabled=false;});
 topupRows.addEventListener('click',async e=>{const edit=e.target.closest('[data-topup-edit]'),del=e.target.closest('[data-topup-delete]');if(edit){const t=topups.find(x=>String(x.id)===edit.dataset.topupEdit);if(!t)return;editingTopupId=t.id;document.getElementById('topupDate').value=t.topup_date;document.getElementById('topupCoins').value=t.coins_received;document.getElementById('topupCost').value=t.amount_paid;const isOpening=(t.notes||'').startsWith('[ยอดยกมา]');document.getElementById('topupEntryType').value=isOpening?'opening':'purchase';document.getElementById('topupNote').value=(t.notes||'').replace(/^\[(ยอดยกมา|ซื้อใหม่)\]\s*/,'');document.getElementById('saveTopup').textContent='บันทึกการแก้ไข';document.getElementById('cancelTopupEdit').style.display='inline-block';topupStatus.textContent='กำลังแก้ไขรายการเติมเหรียญ #'+t.id;updateTopupUnitCost();topupForm.scrollIntoView({behavior:'smooth',block:'start'});return;}if(del){if(!confirm('ต้องการลบรายการเติมเหรียญนี้หรือไม่?'))return;const {error}=await supabase.from('coin_topups').delete().eq('id',del.dataset.topupDelete);if(error){alert('ลบรายการไม่สำเร็จ: '+error.message);return;}await loadTopups();updateOrderCalc();}});
 document.getElementById('cancelTopupEdit').addEventListener('click',()=>{resetTopupForm();topupStatus.textContent='ยกเลิกการแก้ไขแล้ว';});
 async function initRateOrders(){await loadRates();await loadOrders();await loadTopups();if(rates.length===0)rateStatus.textContent='ตั้งค่าตารางแล้ว แต่ยังไม่มีเรทเริ่มต้น';}
