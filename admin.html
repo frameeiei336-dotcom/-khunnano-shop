@@ -260,7 +260,7 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       </div>
       <div class="ro-two">
         <div class="ro-field"><label for="orderUnitPrice">ราคาขายต่อชุด (บาท) *</label><input id="orderUnitPrice" type="number" min="0" step="0.01" required value="0"></div>
-        <div class="ro-field"><label for="orderUnitCost">ต้นทุนต่อชุด (บาท)</label><input id="orderUnitCost" type="number" min="0" step="0.01" placeholder="กรอกเพื่อคำนวณกำไร"></div>
+        <div class="ro-field"><label for="orderUnitCost">ต้นทุนต่อชุด (บาท) — ไม่บังคับ</label><input id="orderUnitCost" type="number" min="0" step="0.01" placeholder="เว้นว่างได้ หากไม่ทราบต้นทุน"></div>
       </div>
       <div class="ro-two">
         <div class="ro-field"><label for="orderCustomerName">ชื่อลูกค้า</label><input id="orderCustomerName" maxlength="120" placeholder="ไม่บังคับ"></div>
@@ -544,7 +544,40 @@ function downloadExcelFallbackRO(data){
  const summary=[['รายงานยอดขาย STICKER KHUNNANO'],['เดือน',data.month],['จำนวนออเดอร์',data.list.length],['ยอดขายรวม',data.list.reduce((s,o)=>s+Number(o.total_amount||0),0)],['เหรียญรวม',data.list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0)],['กำไรที่มีต้นทุน',data.list.some(o=>o.total_cost!=null)?data.list.filter(o=>o.total_cost!=null).reduce((s,o)=>s+Number(o.profit_amount||0),0):'ไม่มีข้อมูลต้นทุน']];
  const category=[['ประเภทสินค้า','จำนวนออเดอร์','จำนวนชุด','ยอดขายรวม (บาท)'],...Object.entries(categoryNames).map(([key,label])=>{const arr=data.list.filter(o=>o.product_type===key);return [label,arr.length,arr.reduce((n,o)=>n+Number(o.quantity||0),0),arr.reduce((n,o)=>n+Number(o.total_amount||0),0)];})];
  const table=(rows)=>'<table border="1"><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
- const html='<html><head><meta charset="utf-8"></head><body><h2>สรุป</h2>'+table(summary)+'<h2>รายการขาย</h2>'+table([data.headers,...data.rows])+'<h2>แยกประเภท</h2>'+table(category)+'</body></html>';
+ const html='<html><head><meta charset="utf-8"></head><body><h2>สรุป</h2>'+table(summary)+'<h2>รายการขาย</h2>'+table([data.headers,...data.rows])+'<h2>แยกประเภท</h2>'+table(category)+'
+<style id="orderQuickViewStyles">
+#orderQuickDock{position:fixed;right:16px;bottom:18px;z-index:9998;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-family:inherit}
+#orderQuickToggle{border:0;border-radius:999px;padding:13px 17px;background:linear-gradient(135deg,#8d70e8,#6949cb);color:#fff;font-size:13px;font-weight:850;box-shadow:0 8px 28px #6043b744;min-height:48px}
+#orderQuickPanel{display:none;width:min(420px,calc(100vw - 24px));max-height:48vh;overflow:auto;background:#fff;border:1px solid #e4d8f5;border-radius:18px;box-shadow:0 16px 48px #33225330;padding:12px}
+#orderQuickPanel.open{display:block}
+.order-quick-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-weight:850;color:#4d3977}
+#orderQuickClose{background:#f1ebfa;color:#5d4685;padding:7px 10px;min-height:34px}
+#orderQuickContent table{width:100%;min-width:0;border-collapse:collapse}
+#orderQuickContent th,#orderQuickContent td{font-size:11px;padding:8px 6px;white-space:normal;overflow-wrap:anywhere}
+#orderQuickContent th:nth-child(n+5),#orderQuickContent td:nth-child(n+5){display:none}
+#orderQuickContent .empty{padding:14px;color:#817694}
+@media(min-width:900px){#orderQuickDock{right:24px;bottom:24px}#orderQuickPanel{max-height:55vh}}
+@media(max-width:480px){#orderQuickDock{right:10px;bottom:12px}#orderQuickToggle{padding:12px 14px;font-size:12px}#orderQuickPanel{max-height:42vh}}
+</style>
+<div id="orderQuickDock" aria-live="polite">
+  <div id="orderQuickPanel" role="region" aria-label="รายการออเดอร์ล่าสุด">
+    <div class="order-quick-head"><span>📋 รายการออเดอร์ล่าสุด</span><button id="orderQuickClose" type="button">ปิด</button></div>
+    <div id="orderQuickContent"><div class="empty">กำลังโหลดรายการ…</div></div>
+  </div>
+  <button id="orderQuickToggle" type="button" aria-expanded="false">📋 ดูรายการล่าสุด</button>
+</div>
+<script id="orderQuickViewScript">
+(()=>{
+ const panel=document.getElementById('orderQuickPanel'),toggle=document.getElementById('orderQuickToggle'),close=document.getElementById('orderQuickClose'),content=document.getElementById('orderQuickContent');
+ const source=()=>document.getElementById('orderRows');
+ function refresh(){const body=source();if(!body)return;const rows=[...body.querySelectorAll('tr')].slice(0,5);if(!rows.length){content.innerHTML='<div class="empty">ยังไม่มีรายการออเดอร์</div>';return;}const table=document.createElement('table');const original=body.closest('table');if(original){const head=original.querySelector('thead');if(head)table.append(head.cloneNode(true));}const tb=document.createElement('tbody');rows.forEach(r=>tb.append(r.cloneNode(true)));table.append(tb);content.replaceChildren(table);}
+ function setOpen(open){panel.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'📋 ซ่อนรายการล่าสุด':'📋 ดูรายการล่าสุด';if(open)refresh();}
+ toggle.addEventListener('click',()=>setOpen(!panel.classList.contains('open')));close.addEventListener('click',()=>setOpen(false));
+ const body=source();if(body&&window.MutationObserver)new MutationObserver(()=>{if(panel.classList.contains('open'))refresh();}).observe(body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
+</body></html>';
  downloadBlobRO(new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8;'}),'sticker-khunnano-report-'+data.month+'.xls');
 }
 document.getElementById('downloadReportExcel').addEventListener('click',async()=>{
