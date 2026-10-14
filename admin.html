@@ -445,18 +445,33 @@ rateForm.addEventListener('submit',async e=>{
  document.getElementById('saveRate').disabled=false;
 });
 function selectedRate(){return rates.find(r=>String(r.coins)===orderRateSelect.value)||null;}
-function inventorySnapshot(excludeOrderId=null){
- // Weighted-average costing: top-ups add coins and cost; saved orders consume coins and their frozen cost.
- const addedCoins=topups.reduce((s,t)=>s+Number(t.coins_received||0),0);
- const addedCost=topups.reduce((s,t)=>s+Number(t.amount_paid||0),0);
- const sold=orders.filter(o=>excludeOrderId===null||String(o.id)!==String(excludeOrderId));
- const soldCoins=sold.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0);
- const knownCost=sold.reduce((s,o)=>s+(o.total_cost==null?0:Number(o.total_cost)),0);
- const remainingCoins=addedCoins-soldCoins,remainingCost=addedCost-knownCost;
- return {addedCoins,addedCost,soldCoins,knownCost,remainingCoins,remainingCost,unitCost:remainingCoins>0&&remainingCost>=0?remainingCost/remainingCoins:null};
+function inventorySnapshot(excludeOrderId=null, throughDate=null){
+ // Replay dated stock events in chronological order using weighted-average cost.
+ // Existing order costs stay frozen; orders without a saved cost use the average at that point.
+ const events=[];
+ topups.forEach(t=>events.push({kind:'topup',date:String(t.topup_date||''),created:String(t.created_at||''),id:String(t.id),row:t}));
+ orders.forEach(o=>{if(excludeOrderId!==null&&String(o.id)===String(excludeOrderId))return;events.push({kind:'order',date:String(o.order_date||''),created:String(o.created_at||''),id:String(o.id),row:o});});
+ const cutoff=throughDate||'9999-12-31';
+ const eligible=events.filter(e=>e.date&&e.date<=cutoff).sort((a,b)=>a.date.localeCompare(b.date)||a.created.localeCompare(b.created)||a.kind.localeCompare(b.kind)||a.id.localeCompare(b.id));
+ let addedCoins=0,addedCost=0,soldCoins=0,knownCost=0,remainingCoins=0,remainingCost=0;
+ for(const e of eligible){
+  if(e.kind==='topup'){
+   const c=Math.max(0,Number(e.row.coins_received)||0),v=Math.max(0,Number(e.row.amount_paid)||0);
+   addedCoins+=c;addedCost+=v;remainingCoins+=c;remainingCost+=v;
+  }else{
+   const o=e.row,c=Math.max(0,Number(o.coins)||0)*Math.max(1,Number(o.quantity)||1);
+   const frozen=o.total_cost==null?null:Math.max(0,Number(o.total_cost)||0);
+   const allocated=frozen===null?(remainingCoins>0&&remainingCost>=0?remainingCost/remainingCoins*c:null):frozen;
+   soldCoins+=c;
+   if(allocated!==null){knownCost+=allocated;remainingCost-=allocated;}
+   remainingCoins-=c;
+  }
+ }
+ const valid=remainingCoins>0&&remainingCost>=-0.005&&remainingCost/remainingCoins>=0;
+ return {addedCoins,addedCost,soldCoins,knownCost,remainingCoins,remainingCost:Math.max(0,remainingCost),unitCost:valid?Math.max(0,remainingCost/remainingCoins):null};
 }
 function suggestedUnitCostPerSet(){
- const coins=Number(document.getElementById('orderCoins').value||0),inv=inventorySnapshot(editingOrderId);
+ const coins=Number(document.getElementById('orderCoins').value||0),inv=inventorySnapshot(editingOrderId,document.getElementById('orderDate').value||null);
  return inv.unitCost!==null&&coins>0?Math.round(inv.unitCost*coins*100)/100:null;
 }
 function updateOrderCalc(){
@@ -489,6 +504,7 @@ orderCustomCoins.addEventListener('change',()=>{
 });
 document.getElementById('orderBuyerType').addEventListener('change',applySelectedRate);
 ['orderQuantity','orderUnitPrice'].forEach(id=>document.getElementById(id).addEventListener('input',updateOrderCalc));
+document.getElementById('orderDate').addEventListener('change',updateOrderCalc);
 document.getElementById('orderUnitCost').addEventListener('input',()=>{document.getElementById('orderUnitCost').dataset.manual='true';updateOrderCalc();});
 async function loadOrders(){
  const {data,error}=await supabase.from('order_records').select('id,order_date,buyer_type,product_type,product_name,coins,quantity,unit_price,cost_price,total_amount,total_cost,profit_amount,customer_name,agent_name,notes,created_at').order('order_date',{ascending:false}).order('id',{ascending:false}).limit(1000);
@@ -529,7 +545,7 @@ orderForm.addEventListener('submit',async e=>{
   const qty=Number(document.getElementById('orderQuantity').value),coins=Number(document.getElementById('orderCoins').value),price=Number(document.getElementById('orderUnitPrice').value),costText=document.getElementById('orderUnitCost').value;
   if(!Number.isInteger(qty)||qty<1||!Number.isInteger(coins)||coins<1||!Number.isFinite(price)||price<0)throw new Error('ตรวจสอบจำนวนชุด จำนวนเหรียญ และราคาขาย');
   if(costText!==''&&(!Number.isFinite(Number(costText))||Number(costText)<0))throw new Error('ต้นทุนต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป');
-  const inv=inventorySnapshot(editingOrderId);
+  const inv=inventorySnapshot(editingOrderId,document.getElementById('orderDate').value||null);
   const coinsNeeded=coins*qty;
   if(inv.remainingCoins<coinsNeeded)throw new Error('เหรียญในสต็อกไม่พอ: คงเหลือ '+numRO(inv.remainingCoins)+' เหรียญ แต่รายการนี้ใช้ '+numRO(coinsNeeded)+' เหรียญ');
   const autoCost=costText===''?suggestedUnitCostPerSet():null;
