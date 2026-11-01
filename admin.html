@@ -182,6 +182,13 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
 .report-period-btn{min-width:0;padding:10px 6px!important;border:1px solid transparent!important;border-radius:13px!important;background:#f3edfb!important;color:#71618b!important;font-size:12px!important;white-space:nowrap}
 .report-period-btn.active{background:linear-gradient(135deg,#c7a6f4,#9875df)!important;color:#fff!important;border-color:#a889e8!important;box-shadow:0 5px 12px #a987df38}
 .report-date-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.report-date-controls [hidden]{display:none!important}
+.report-date-controls .ro-field{position:relative;padding:12px;border:1px solid #e8dcfa;border-radius:18px;background:linear-gradient(145deg,#fffaff,#f6f0ff);box-shadow:inset 0 1px 0 #fff}
+.report-date-controls .ro-field label{display:flex;align-items:center;gap:6px;margin:0 0 8px;color:#8063b2;font-weight:800;font-size:13px}
+.report-date-controls .ro-field label::before{content:'🎀';font-size:14px}
+.report-date-controls input{width:100%;min-height:50px;border:1.5px solid #dfd0f7!important;border-radius:14px!important;background:#fff!important;color:#493866!important;padding:10px 12px!important;font-size:16px!important;box-shadow:0 3px 10px #a88be91a!important;accent-color:#9270d8}
+.report-date-controls input:focus{outline:3px solid #eadfff!important;border-color:#a88be9!important}
+.report-date-hint{font-size:11px;color:#9a8bac;margin-top:6px}
+.report-date-controls .ro-field[hidden]{display:none!important}
 .report-period-btn:focus-visible{outline:3px solid #d8c5ff;outline-offset:2px}
 @media(max-width:520px){.report-period{grid-template-columns:repeat(3,minmax(0,1fr))}.report-period-btn{font-size:11px!important;padding:10px 4px!important}.report-date-controls{grid-template-columns:1fr}}
 
@@ -290,7 +297,7 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
         <button type="button" class="report-period-btn" data-period="custom">💜 กำหนดเอง</button>
       </div>
       <div class="report-date-controls">
-        <div class="ro-field" id="reportAnchorWrap"><label for="reportAnchor">เลือกวันที่อ้างอิง</label><input id="reportAnchor" type="date"></div>
+        <div class="ro-field" id="reportAnchorWrap"><label for="reportAnchor" id="reportAnchorLabel">เลือกวันที่อ้างอิง</label><input id="reportAnchor" type="date"><div class="report-date-hint" id="reportAnchorHint">เลือกวันที่ต้องการดูรายงาน</div></div>
         <div class="ro-field" id="reportStartWrap" hidden><label for="reportStart">วันเริ่มต้น</label><input id="reportStart" type="date"></div>
         <div class="ro-field" id="reportEndWrap" hidden><label for="reportEnd">วันสิ้นสุด</label><input id="reportEnd" type="date"></div>
       </div>
@@ -560,16 +567,33 @@ function renderOrders(){
  document.getElementById('orderRows').innerHTML=list.length?list.slice(0,orderHistoryExpanded?300:5).map(o=>'<tr><td>'+esc(o.order_date)+'<br><small style="color:#75677e">บันทึก: '+esc(thaiDateTimeRO(o.created_at))+'</small></td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o._fifoMissing?'ตรวจสอบสต็อก':moneyRO(o._fifoCost))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o._fifoMissing?'—':moneyRO(o._fifoProfit))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
 }
 let reportPeriodRO='month';
+function reportAnchorDateRO(){
+ const input=document.getElementById('reportAnchor');let value=input.value||localDateRO();
+ if(reportPeriodRO==='year')value=String(value).slice(0,4)+'-01-01';
+ else if(reportPeriodRO==='month')value=String(value).slice(0,7)+'-01';
+ const [yy,mm,dd]=value.split('-').map(Number);return new Date(yy,(mm||1)-1,dd||1);
+}
+function configureReportAnchorRO({openPicker=false}={}){
+ const input=document.getElementById('reportAnchor'),label=document.getElementById('reportAnchorLabel'),hint=document.getElementById('reportAnchorHint');
+ const today=localDateRO();
+ if(reportPeriodRO==='year'){
+  const current=input.value.match(/^\d{4}/)?.[0]||today.slice(0,4);input.type='number';input.min='2000';input.max='2100';input.step='1';input.value=current;label.textContent='เลือกปีที่ต้องการ';hint.textContent='เลือกปี แล้วระบบจะสรุปตั้งแต่มกราคมถึงธันวาคม';
+ }else if(reportPeriodRO==='month'){
+  const current=input.value.length>=7?input.value.slice(0,7):today.slice(0,7);input.type='month';input.removeAttribute('min');input.removeAttribute('max');input.value=current;label.textContent='เลือกเดือนที่ต้องการ';hint.textContent='เลือกเดือน แล้วระบบจะสรุปทั้งเดือน';
+ }else{
+  const current=input.type==='date'&&/^\d{4}-\d{2}-\d{2}$/.test(input.value)?input.value:today;input.type='date';input.removeAttribute('min');input.removeAttribute('max');input.value=current;label.textContent=reportPeriodRO==='week'?'เลือกวันภายในสัปดาห์':'เลือกวันที่ต้องการ';hint.textContent=reportPeriodRO==='week'?'เลือกวันใดก็ได้ ระบบจะสรุปวันจันทร์–อาทิตย์ของสัปดาห์นั้น':'เลือกวันที่ ระบบจะแสดงเฉพาะวันนั้น';
+ }
+ if(openPicker){const wrap=document.getElementById('reportAnchorWrap');wrap.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{try{if(input.type==='date'||input.type==='month')input.showPicker?.();else{input.focus();input.select();}}catch(_){input.focus();}},220);}
+}
 function reportRangeRO(){
- const anchor=document.getElementById('reportAnchor').value||localDateRO();
- const [yy,mm,dd]=anchor.split('-').map(Number);const base=new Date(yy,mm-1,dd);
  let from,to,label;
  if(reportPeriodRO==='custom'){
   from=document.getElementById('reportStart').value;to=document.getElementById('reportEnd').value;
   if(!from||!to||from>to)return null;label=from+' ถึง '+to;
  }else{
+  const base=reportAnchorDateRO(),yy=base.getFullYear(),mm=base.getMonth()+1;
   let a=new Date(base),b=new Date(base);
-  if(reportPeriodRO==='day'){from=anchor;to=anchor;label='รายวัน '+anchor;}
+  if(reportPeriodRO==='day'){from=localDateFromDateRO(base);to=from;label='รายวัน '+from;}
   else if(reportPeriodRO==='week'){let day=(base.getDay()+6)%7;a.setDate(base.getDate()-day);b=new Date(a);b.setDate(a.getDate()+6);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายสัปดาห์ '+from+' ถึง '+to;}
   else if(reportPeriodRO==='year'){a=new Date(yy,0,1);b=new Date(yy,11,31);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายปี '+yy;}
   else{a=new Date(yy,mm-1,1);b=new Date(yy,mm,0);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายเดือน '+yy+'-'+String(mm).padStart(2,'0');}
@@ -691,7 +715,13 @@ document.getElementById('downloadReportPdf').addEventListener('click',()=>{
   reportStatus('เปิดรายงาน PDF สำหรับพิมพ์แล้ว หากไม่เห็นหน้าต่าง ให้ตรวจสอบแท็บใหม่ของเบราว์เซอร์');
  }catch(err){if(printWindow)try{printWindow.close()}catch(_){}reportStatus('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)),true);alert('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)));}
 });
-document.querySelectorAll('.report-period-btn').forEach(btn=>btn.addEventListener('click',()=>{reportPeriodRO=btn.dataset.period;document.querySelectorAll('.report-period-btn').forEach(x=>x.classList.toggle('active',x===btn));const custom=reportPeriodRO==='custom';document.getElementById('reportAnchorWrap').hidden=custom;document.getElementById('reportStartWrap').hidden=!custom;document.getElementById('reportEndWrap').hidden=!custom;renderReport();}));
+document.querySelectorAll('.report-period-btn').forEach(btn=>btn.addEventListener('click',()=>{
+ reportPeriodRO=btn.dataset.period;document.querySelectorAll('.report-period-btn').forEach(x=>x.classList.toggle('active',x===btn));
+ const custom=reportPeriodRO==='custom';document.getElementById('reportAnchorWrap').hidden=custom;document.getElementById('reportStartWrap').hidden=!custom;document.getElementById('reportEndWrap').hidden=!custom;
+ if(!custom)configureReportAnchorRO({openPicker:true});else{document.getElementById('reportStartWrap').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{const start=document.getElementById('reportStart');try{start.showPicker?.();}catch(_){start.focus();}},220);}
+ renderReport();
+}));
+configureReportAnchorRO();
 ['reportAnchor','reportStart','reportEnd'].forEach(id=>document.getElementById(id).addEventListener('change',renderReport));
 document.getElementById('filterHistory').addEventListener('click',renderOrders);
 document.getElementById('orderRows').addEventListener('click',async e=>{
