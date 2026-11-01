@@ -278,7 +278,7 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       <div class="ro-inline"><button class="primary" id="downloadReportExcel" type="button">📊 ดาวน์โหลด Excel</button><button class="back" id="downloadReportPdf" type="button">🖨️ ดาวน์โหลด / พิมพ์ PDF</button></div><div class="ro-msg" id="reportDownloadStatus" aria-live="polite"></div>
       <div class="ro-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
         <div class="ro-stat"><div class="k">ยอดขายรวม</div><div class="v" id="reportRevenue">฿0</div></div>
-        <div class="ro-stat"><div class="k">จำนวนออเดอร์</div><div class="v" id="reportOrders">0</div></div>
+        <div class="ro-stat"><div class="k">จำนวนชุด</div><div class="v" id="reportOrders">0</div></div>
         <div class="ro-stat"><div class="k">เหรียญรวม</div><div class="v" id="reportCoins">0</div></div>
         <div class="ro-stat"><div class="k">กำไรที่มีต้นทุน</div><div class="v" id="reportProfit">—</div></div>
       </div>
@@ -544,7 +544,7 @@ function renderReport(){
  const revenue=list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0);
  const known=list.filter(o=>!o._fifoMissing),profit=known.reduce((s,o)=>s+Number(o._fifoProfit||0),0);
  document.getElementById('reportRevenue').textContent=moneyRO(revenue);
- document.getElementById('reportOrders').textContent=numRO(list.length);
+ document.getElementById('reportOrders').textContent=numRO(list.reduce((s,o)=>s+Number(o.quantity||0),0));
  document.getElementById('reportCoins').textContent=numRO(coins);
  document.getElementById('reportProfit').textContent=known.length?moneyRO(profit):'—';
  document.getElementById('reportCategoryRows').innerHTML=Object.entries(categoryNames).map(([key,label])=>{
