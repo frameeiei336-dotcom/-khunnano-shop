@@ -177,6 +177,14 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 
 @media(max-width:600px){.table-wrap{border-radius:12px}.table-wrap table{min-width:900px}.table-wrap th,.table-wrap td{padding:11px 12px;font-size:14px}.table-wrap td:nth-child(2){min-width:145px;max-width:180px}.table-wrap .actions button{padding:9px 12px;font-size:13px}}
+
+.report-period{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0 13px;padding:6px;border:1px solid #eadcf8;border-radius:17px;background:linear-gradient(135deg,#fbf7ff,#fff7fc)}
+.report-period-btn{min-width:0;padding:10px 6px!important;border:1px solid transparent!important;border-radius:13px!important;background:#f3edfb!important;color:#71618b!important;font-size:12px!important;white-space:nowrap}
+.report-period-btn.active{background:linear-gradient(135deg,#c7a6f4,#9875df)!important;color:#fff!important;border-color:#a889e8!important;box-shadow:0 5px 12px #a987df38}
+.report-date-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.report-date-controls [hidden]{display:none!important}
+.report-period-btn:focus-visible{outline:3px solid #d8c5ff;outline-offset:2px}
+@media(max-width:520px){.report-period{grid-template-columns:repeat(3,minmax(0,1fr))}.report-period-btn{font-size:11px!important;padding:10px 4px!important}.report-date-controls{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -273,8 +281,20 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       <div class="ro-msg" id="orderStatus"></div>
     </form>
     <div class="ro-box">
-      <h3>📅 รายงานประจำเดือน</h3>
-      <div class="ro-field"><label for="reportMonth">เลือกเดือน</label><input id="reportMonth" type="month"></div>
+      <h3>📅 รายงานสรุปรายรับ–รายจ่าย</h3>
+      <div class="report-period" role="group" aria-label="เลือกรูปแบบช่วงเวลารายงาน">
+        <button type="button" class="report-period-btn" data-period="day">☀️ รายวัน</button>
+        <button type="button" class="report-period-btn" data-period="week">🌷 รายสัปดาห์</button>
+        <button type="button" class="report-period-btn active" data-period="month">🌙 รายเดือน</button>
+        <button type="button" class="report-period-btn" data-period="year">🎀 รายปี</button>
+        <button type="button" class="report-period-btn" data-period="custom">💜 กำหนดเอง</button>
+      </div>
+      <div class="report-date-controls">
+        <div class="ro-field" id="reportAnchorWrap"><label for="reportAnchor">เลือกวันที่อ้างอิง</label><input id="reportAnchor" type="date"></div>
+        <div class="ro-field" id="reportStartWrap" hidden><label for="reportStart">วันเริ่มต้น</label><input id="reportStart" type="date"></div>
+        <div class="ro-field" id="reportEndWrap" hidden><label for="reportEnd">วันสิ้นสุด</label><input id="reportEnd" type="date"></div>
+      </div>
+      <input id="reportMonth" type="hidden">
       <div class="ro-inline"><button class="primary" id="downloadReportExcel" type="button">📊 ดาวน์โหลด Excel</button><button class="back" id="downloadReportPdf" type="button">🖨️ ดาวน์โหลด / พิมพ์ PDF</button></div><div class="ro-msg" id="reportDownloadStatus" aria-live="polite"></div>
       <div class="ro-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
         <div class="ro-stat"><div class="k">ยอดขายรวม</div><div class="v" id="reportRevenue">฿0</div></div>
@@ -404,6 +424,7 @@ const thaiDateTimeRO=value=>{if(!value)return '—';const d=new Date(value);if(N
 const localMonthRO=()=>localDateRO().slice(0,7);
 document.getElementById('orderDate').value=localDateRO();
 document.getElementById('reportMonth').value=localMonthRO();
+document.getElementById('reportAnchor').value=localDateRO();document.getElementById('reportStart').value=localDateRO();document.getElementById('reportEnd').value=localDateRO();
 document.getElementById('topupDate').value=localDateRO();
 
 function renderRateRows(){
@@ -538,19 +559,36 @@ function renderOrders(){
  orderHistoryToggle.setAttribute('aria-expanded',String(orderHistoryExpanded));
  document.getElementById('orderRows').innerHTML=list.length?list.slice(0,orderHistoryExpanded?300:5).map(o=>'<tr><td>'+esc(o.order_date)+'<br><small style="color:#75677e">บันทึก: '+esc(thaiDateTimeRO(o.created_at))+'</small></td><td>'+esc(categoryNames[o.product_type]||o.product_type)+'<br><span style="color:#75677e">'+esc(buyerNames[o.buyer_type]||o.buyer_type)+'</span></td><td><b>'+esc(o.product_name)+'</b><br>'+numRO(o.coins)+' เหรียญ</td><td>'+esc(o.customer_name||'-')+'<br><span style="color:#75677e">'+esc(o.agent_name||'-')+'</span></td><td>'+numRO(o.quantity)+'</td><td>'+moneyRO(o.unit_price)+'<br><span style="color:#75677e">ต้นทุน: '+(o._fifoMissing?'ตรวจสอบสต็อก':moneyRO(o._fifoCost))+'</span></td><td>'+moneyRO(o.total_amount)+'</td><td>'+(o._fifoMissing?'—':moneyRO(o._fifoProfit))+'</td><td><button type="button" class="back" data-order-edit="'+esc(o.id)+'">แก้ไข</button><button type="button" class="danger" data-order-delete="'+esc(o.id)+'">ลบ</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">ยังไม่มีออเดอร์ในเงื่อนไขนี้</td></tr>';
 }
+let reportPeriodRO='month';
+function reportRangeRO(){
+ const anchor=document.getElementById('reportAnchor').value||localDateRO();
+ const [yy,mm,dd]=anchor.split('-').map(Number);const base=new Date(yy,mm-1,dd);
+ let from,to,label;
+ if(reportPeriodRO==='custom'){
+  from=document.getElementById('reportStart').value;to=document.getElementById('reportEnd').value;
+  if(!from||!to||from>to)return null;label=from+' ถึง '+to;
+ }else{
+  let a=new Date(base),b=new Date(base);
+  if(reportPeriodRO==='day'){from=anchor;to=anchor;label='รายวัน '+anchor;}
+  else if(reportPeriodRO==='week'){let day=(base.getDay()+6)%7;a.setDate(base.getDate()-day);b=new Date(a);b.setDate(a.getDate()+6);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายสัปดาห์ '+from+' ถึง '+to;}
+  else if(reportPeriodRO==='year'){a=new Date(yy,0,1);b=new Date(yy,11,31);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายปี '+yy;}
+  else{a=new Date(yy,mm-1,1);b=new Date(yy,mm,0);from=localDateFromDateRO(a);to=localDateFromDateRO(b);label='รายเดือน '+yy+'-'+String(mm).padStart(2,'0');}
+ }
+ return {from,to,label};
+}
+function localDateFromDateRO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function reportListRO(range){return fifoDisplayOrders(orders.filter(o=>String(o.order_date||'').slice(0,10)>=range.from&&String(o.order_date||'').slice(0,10)<=range.to));}
 function renderReport(){
- const month=document.getElementById('reportMonth').value;
- const list=fifoDisplayOrders(orders.filter(o=>String(o.order_date||'').slice(0,7)===month));
+ const range=reportRangeRO();
+ if(!range){document.getElementById('reportRevenue').textContent='—';document.getElementById('reportOrders').textContent='—';document.getElementById('reportCoins').textContent='—';document.getElementById('reportProfit').textContent='—';document.getElementById('reportCategoryRows').innerHTML='<tr><td colspan="4">กรุณาตรวจสอบช่วงวันที่</td></tr>';return;}
+ const list=reportListRO(range);
  const revenue=list.reduce((s,o)=>s+Number(o.total_amount||0),0),coins=list.reduce((s,o)=>s+Number(o.coins||0)*Number(o.quantity||1),0);
  const known=list.filter(o=>!o._fifoMissing),profit=known.reduce((s,o)=>s+Number(o._fifoProfit||0),0);
  document.getElementById('reportRevenue').textContent=moneyRO(revenue);
  document.getElementById('reportOrders').textContent=numRO(list.reduce((s,o)=>s+Number(o.quantity||0),0));
  document.getElementById('reportCoins').textContent=numRO(coins);
  document.getElementById('reportProfit').textContent=known.length?moneyRO(profit):'—';
- document.getElementById('reportCategoryRows').innerHTML=Object.entries(categoryNames).map(([key,label])=>{
-  const arr=list.filter(o=>o.product_type===key);
-  return '<tr><td>'+esc(label)+'</td><td>'+numRO(arr.length)+'</td><td>'+numRO(arr.reduce((s,o)=>s+Number(o.quantity||0),0))+'</td><td>'+moneyRO(arr.reduce((s,o)=>s+Number(o.total_amount||0),0))+'</td></tr>';
- }).join('');
+ document.getElementById('reportCategoryRows').innerHTML=Object.entries(categoryNames).map(([key,label])=>{const arr=list.filter(o=>o.product_type===key);return '<tr><td>'+esc(label)+'</td><td>'+numRO(arr.length)+'</td><td>'+numRO(arr.reduce((s,o)=>s+Number(o.quantity||0),0))+'</td><td>'+moneyRO(arr.reduce((s,o)=>s+Number(o.total_amount||0),0))+'</td></tr>';}).join('');
 }
 orderForm.addEventListener('submit',async e=>{
  e.preventDefault();const save=document.getElementById('saveOrder');save.disabled=true;orderStatus.textContent='กำลังบันทึก...';
@@ -575,10 +613,10 @@ orderForm.addEventListener('submit',async e=>{
 });
 document.getElementById('cancelOrderEdit').addEventListener('click',()=>{editingOrderId=null;orderForm.reset();document.getElementById('orderDate').value=localDateRO();document.getElementById('orderQuantity').value=1;document.getElementById('orderUnitPrice').value=0;document.getElementById('orderCoins').readOnly=true;document.getElementById('orderCoins').value='';document.getElementById('orderUnitCost').value='';orderCustomCoins.checked=false;orderRateSelect.value='';document.getElementById('saveOrder').textContent='＋ บันทึกออเดอร์';document.getElementById('cancelOrderEdit').style.display='none';orderStatus.textContent='ยกเลิกการแก้ไขแล้ว';updateOrderCalc();});
 function reportData(){
- const month=document.getElementById('reportMonth').value;
- if(!month){alert('กรุณาเลือกเดือนที่ต้องการดาวน์โหลดรายงาน');return null;}
+ const range=reportRangeRO();
+ if(!range){alert('กรุณาตรวจสอบช่วงวันที่ที่เลือก');return null;}
  renderReport();
- const list=fifoDisplayOrders(orders.filter(o=>String(o.order_date||'').slice(0,7)===month));
+ const list=reportListRO(range);const month=range.label;
  const headers=['วันที่','ประเภทสินค้า','ประเภทผู้ซื้อ','ชื่อสินค้า','จำนวนเหรียญ','จำนวนชุด','ราคาต่อชุด (บาท)','ต้นทุนต่อชุด (บาท)','ยอดขายรวม (บาท)','ต้นทุนรวม (บาท)','กำไร (บาท)','ชื่อลูกค้า','ชื่อตัวแทน','หมายเหตุ'];
  const rows=list.map(o=>[o.order_date,categoryNames[o.product_type]||o.product_type,buyerNames[o.buyer_type]||o.buyer_type,o.product_name,o.coins,o.quantity,o.unit_price,o._fifoMissing?'ตรวจสอบสต็อก':o._fifoCost,o.total_amount,o._fifoMissing?'':o._fifoTotalCost,o._fifoMissing?'':o._fifoProfit,o.customer_name||'',o.agent_name||'',o.notes||'']);
  return {month,list,headers,rows};
@@ -653,7 +691,8 @@ document.getElementById('downloadReportPdf').addEventListener('click',()=>{
   reportStatus('เปิดรายงาน PDF สำหรับพิมพ์แล้ว หากไม่เห็นหน้าต่าง ให้ตรวจสอบแท็บใหม่ของเบราว์เซอร์');
  }catch(err){if(printWindow)try{printWindow.close()}catch(_){}reportStatus('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)),true);alert('เปิดรายงาน PDF ไม่สำเร็จ: '+(err?.message||String(err)));}
 });
-document.getElementById('reportMonth').addEventListener('change',renderReport);
+document.querySelectorAll('.report-period-btn').forEach(btn=>btn.addEventListener('click',()=>{reportPeriodRO=btn.dataset.period;document.querySelectorAll('.report-period-btn').forEach(x=>x.classList.toggle('active',x===btn));const custom=reportPeriodRO==='custom';document.getElementById('reportAnchorWrap').hidden=custom;document.getElementById('reportStartWrap').hidden=!custom;document.getElementById('reportEndWrap').hidden=!custom;renderReport();}));
+['reportAnchor','reportStart','reportEnd'].forEach(id=>document.getElementById(id).addEventListener('change',renderReport));
 document.getElementById('filterHistory').addEventListener('click',renderOrders);
 document.getElementById('orderRows').addEventListener('click',async e=>{
  const edit=e.target.closest('[data-order-edit]');
