@@ -949,9 +949,27 @@ document.getElementById('logout').addEventListener('click',async()=>{await windo
 #orderQuickPanel{display:none;width:min(420px,calc(100vw - 24px));max-height:45vh;overflow:auto;background:#fff;border:1px solid #e4d8f5;border-radius:18px;box-shadow:0 16px 48px #33225330;padding:12px;color:#34264d}
 #orderQuickPanel.open{display:block}.order-quick-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-weight:800;color:#4d3977}#orderQuickClose{background:#f1ebfa;color:#5d4685;padding:7px 10px;min-height:34px}
 #orderQuickContent table{width:100%;min-width:0;border-collapse:collapse}#orderQuickContent th,#orderQuickContent td{font-size:11px;padding:7px 5px;white-space:normal;overflow-wrap:anywhere}#orderQuickContent .empty{padding:14px;color:#817694}
-@media(max-width:480px){#orderQuickDock{right:10px;bottom:12px}#orderQuickToggle{padding:11px 13px;font-size:12px}#orderQuickPanel{max-height:40vh}}
+#floatingMenuWrap{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:8px;width:min(260px,calc(100vw - 24px))}
+#floatingMenuToggle{border:1px solid #d9c8fa;border-radius:999px;padding:11px 16px;background:linear-gradient(135deg,#fffaff,#eee4ff);color:#6345a0;font-size:13px;font-weight:850;box-shadow:0 7px 22px #6043b733;min-height:46px}
+#floatingMenuPanel{display:none;width:100%;padding:10px;background:#fffaff;border:1px solid #dfd0f7;border-radius:20px;box-shadow:0 12px 34px #39235b35;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#floatingMenuPanel.open{display:grid}
+.floating-menu-item{min-width:0;border:1px solid #eadffc;border-radius:14px;background:#f5efff;color:#503b75;padding:10px 6px;font:inherit;font-size:12px;font-weight:800;box-shadow:0 2px 7px #9270d812}
+.floating-menu-item:active{transform:scale(.97);background:#e9ddff}
+#orderQuickToggle{white-space:nowrap}
+@media(max-width:480px){#orderQuickDock{right:10px;bottom:12px}#orderQuickToggle{padding:11px 13px;font-size:12px}#orderQuickPanel{max-height:40vh}#floatingMenuWrap{width:min(244px,calc(100vw - 20px))}#floatingMenuToggle{font-size:12px}}
 </style>
 <div id="orderQuickDock" aria-live="polite">
+ <div id="floatingMenuWrap">
+  <div id="floatingMenuPanel" aria-label="เมนูทางลัด">
+   <button type="button" class="floating-menu-item" data-jump="zone-orders">🧾 ออเดอร์</button>
+   <button type="button" class="floating-menu-item" data-jump="zone-stock">🪙 คลังเหรียญ</button>
+   <button type="button" class="floating-menu-item" data-jump="zone-reports">📊 รายงาน</button>
+   <button type="button" class="floating-menu-item" data-jump="zone-rates">💜 เรทราคา</button>
+   <button type="button" class="floating-menu-item" data-jump="zone-products">🎀 สินค้า</button>
+   <button type="button" class="floating-menu-item" data-jump="zone-store">🏪 หน้าร้าน</button>
+  </div>
+  <button id="floatingMenuToggle" type="button" aria-expanded="false">💜 เมนูด่วน</button>
+ </div>
  <div id="orderQuickPanel" role="region" aria-label="รายการออเดอร์ล่าสุด"><div class="order-quick-head"><span>📋 รายการออเดอร์ล่าสุด</span><button id="orderQuickClose" type="button">ปิด</button></div><div id="orderQuickContent"><div class="empty">กำลังโหลดรายการ…</div></div></div>
  <button id="orderQuickToggle" type="button" aria-expanded="false">📋 ดูรายการล่าสุด</button>
 </div>
@@ -983,6 +1001,24 @@ document.getElementById('logout').addEventListener('click',async()=>{await windo
     }
     jumpButtons.forEach(b=>b.classList.toggle('is-current',b===btn));
   }));
+})();
+</script>
+
+<script id="floatingMenuController">
+(()=>{
+ const toggle=document.getElementById('floatingMenuToggle');
+ const menu=document.getElementById('floatingMenuPanel');
+ if(!toggle||!menu)return;
+ const close=()=>{menu.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.textContent='💜 เมนูด่วน';};
+ toggle.addEventListener('click',()=>{const open=!menu.classList.contains('open');menu.classList.toggle('open',open);toggle.setAttribute('aria-expanded',String(open));toggle.textContent=open?'🎀 ซ่อนเมนู':'💜 เมนูด่วน';});
+ menu.querySelectorAll('[data-jump]').forEach(btn=>btn.addEventListener('click',()=>{
+   const targetId=btn.dataset.jump;
+   const original=document.querySelector('.workspace-jump[data-jump="'+targetId+'"]');
+   if(original)original.click();
+   close();
+ }));
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+ document.addEventListener('click',e=>{if(!e.target.closest('#floatingMenuWrap'))close();});
 })();
 </script>
 </body>
