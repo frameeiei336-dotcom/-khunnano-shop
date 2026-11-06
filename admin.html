@@ -333,8 +333,9 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
     </form>
       </div>
     </details>
-    <div class="ro-box workspace-zone" id="zone-reports">
-      <h3 class="workspace-zone-heading">📅 รายงานสรุปรายรับ–รายจ่าย</h3>
+    <details class="ro-box workspace-zone collapsible-zone" id="zone-reports" open style="margin-bottom:14px">
+      <summary class="workspace-zone-heading"><span>📅 รายงานสรุปรายรับ–รายจ่าย</span><span class="collapse-caret" aria-hidden="true">⌄</span></summary>
+      <div class="collapsible-content">
       <div class="report-period" role="group" aria-label="เลือกรูปแบบช่วงเวลารายงาน">
         <button type="button" class="report-period-btn" data-period="day">☀️ รายวัน</button>
         <button type="button" class="report-period-btn" data-period="week">🌷 รายสัปดาห์</button>
@@ -357,7 +358,8 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       </div>
       <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>ประเภทสินค้า</th><th>จำนวนออเดอร์</th><th>จำนวนชุด</th><th>ยอดขาย</th></tr></thead><tbody id="reportCategoryRows"><tr><td colspan="4">กำลังโหลด...</td></tr></tbody></table></div>
       <p class="ro-help" style="margin-top:10px">กำไรจะสรุปเฉพาะออเดอร์ที่มีต้นทุนบันทึกไว้เท่านั้น</p>
-    </div>
+      </div>
+    </details>
   </div>
 
   <div id="zone-orders" class="workspace-zone" style="margin-top:18px;font-weight:800">📚 ประวัติออเดอร์</div>
