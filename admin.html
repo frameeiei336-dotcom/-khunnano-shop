@@ -181,16 +181,35 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
 .report-period{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0 13px;padding:6px;border:1px solid #eadcf8;border-radius:17px;background:linear-gradient(135deg,#fbf7ff,#fff7fc)}
 .report-period-btn{min-width:0;padding:10px 6px!important;border:1px solid transparent!important;border-radius:13px!important;background:#f3edfb!important;color:#71618b!important;font-size:12px!important;white-space:nowrap}
 .report-period-btn.active{background:linear-gradient(135deg,#c7a6f4,#9875df)!important;color:#fff!important;border-color:#a889e8!important;box-shadow:0 5px 12px #a987df38}
-.report-date-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.report-date-controls [hidden]{display:none!important}
-.report-date-controls .ro-field{position:relative;padding:12px;border:1px solid #e8dcfa;border-radius:18px;background:linear-gradient(145deg,#fffaff,#f6f0ff);box-shadow:inset 0 1px 0 #fff}
+.report-date-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;max-width:100%;min-width:0;box-sizing:border-box}.report-date-controls [hidden]{display:none!important}
+.report-date-controls .ro-field{position:relative;width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow:hidden;padding:12px;border:1px solid #e8dcfa;border-radius:18px;background:linear-gradient(145deg,#fffaff,#f6f0ff);box-shadow:inset 0 1px 0 #fff}
 .report-date-controls .ro-field label{display:flex;align-items:center;gap:6px;margin:0 0 8px;color:#8063b2;font-weight:800;font-size:13px}
 .report-date-controls .ro-field label::before{content:'🎀';font-size:14px}
-.report-date-controls input{width:100%;min-height:50px;border:1.5px solid #dfd0f7!important;border-radius:14px!important;background:#fff!important;color:#493866!important;padding:10px 12px!important;font-size:16px!important;box-shadow:0 3px 10px #a88be91a!important;accent-color:#9270d8}
+.report-date-controls input{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:50px;border:1.5px solid #dfd0f7!important;border-radius:14px!important;background:#fff!important;color:#493866!important;padding:10px 12px!important;font-size:16px!important;box-shadow:0 3px 10px #a88be91a!important;accent-color:#9270d8}
 .report-date-controls input:focus{outline:3px solid #eadfff!important;border-color:#a88be9!important}
 .report-date-hint{font-size:11px;color:#9a8bac;margin-top:6px}
 .report-date-controls .ro-field[hidden]{display:none!important}
 .report-period-btn:focus-visible{outline:3px solid #d8c5ff;outline-offset:2px}
 @media(max-width:520px){.report-period{grid-template-columns:repeat(3,minmax(0,1fr))}.report-period-btn{font-size:11px!important;padding:10px 4px!important}.report-date-controls{grid-template-columns:1fr}}
+.report-date-controls,.report-date-controls .ro-field,.report-date-controls input{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.report-date-controls input[type="date"]{width:100%!important;display:block!important}
+.workspace-hub,.workspace-jump{min-width:0;max-width:100%;box-sizing:border-box}
+.workspace-jump>span:last-child{min-width:0;overflow-wrap:anywhere}
+@media(max-width:380px){.workspace-hub{grid-template-columns:1fr;padding:10px}.workspace-jump{padding:11px}.report-period{gap:5px;padding:5px}}
+
+
+/* KHUNNANO workspace quick navigation prototype */
+.workspace-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 18px;padding:14px;border:1px solid #e8dcfa;border-radius:22px;background:linear-gradient(145deg,#fffaff,#f5efff);box-shadow:0 8px 24px #8f6bd00d}
+.workspace-hub-title{grid-column:1/-1;color:#8063b2;font-weight:850;font-size:14px;margin:0 2px 2px}
+.workspace-jump{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:13px 12px;border:1px solid #eadffc;border-radius:17px;background:#fff;box-shadow:0 3px 10px #9270d812;color:#493866;cursor:pointer;font:inherit;transition:transform .16s,background .16s,border-color .16s}
+.workspace-jump:active{transform:scale(.98)}
+.workspace-jump .wj-icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:13px;background:#f0e7ff;font-size:20px}
+.workspace-jump b{display:block;font-size:13px;line-height:1.3}.workspace-jump small{display:block;margin-top:3px;color:#9485a8;font-size:10px;line-height:1.35}
+.workspace-jump.is-current{border-color:#a987e8;background:#f5efff;box-shadow:0 0 0 2px #eadfff}
+.workspace-zone{scroll-margin-top:18px}
+.workspace-zone>.ro-box,.workspace-zone.ro-box{border-color:#e8dcfa;box-shadow:0 5px 18px #8e6bd00b}
+.workspace-zone-heading{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:#503d70;font-weight:850;font-size:16px}
+@media(min-width:700px){.workspace-hub{grid-template-columns:repeat(3,minmax(0,1fr))}.workspace-hub-title{grid-column:1/-1}}
 
 </style>
 </head>
@@ -220,13 +239,22 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
   </aside>
   <main class="admin-main">
     <div class="content-heading"><div><div class="eyebrow" id="viewEyebrow">SALES & FINANCE</div><h2 id="viewTitle">ยอดขายและการเงิน</h2><p id="viewDescription">ดูแลเรทราคา บันทึกยอดขาย และตรวจสอบผลประกอบการ</p></div><div class="secure-pill"><span></span> เข้าสู่ระบบแอดมิน</div></div>
+    <nav class="workspace-hub" aria-label="ทางลัดจัดการร้าน">
+      <div class="workspace-hub-title">💜 จัดการร้านเป็นหมวดหมู่ · แตะเพื่อไปยังส่วนที่ต้องการ</div>
+      <button class="workspace-jump is-current" type="button" data-jump="zone-orders"><span class="wj-icon">🧾</span><span><b>ออเดอร์</b><small>บันทึกและประวัติการขาย</small></span></button>
+      <button class="workspace-jump" type="button" data-jump="zone-stock"><span class="wj-icon">🪙</span><span><b>คลังเหรียญ</b><small>ยอดยกมา · เติมเหรียญ · FIFO</small></span></button>
+      <button class="workspace-jump" type="button" data-jump="zone-reports"><span class="wj-icon">📊</span><span><b>รายงาน</b><small>วัน · สัปดาห์ · เดือน · ปี</small></span></button>
+      <button class="workspace-jump" type="button" data-jump="zone-rates"><span class="wj-icon">💜</span><span><b>เรทราคา</b><small>ลูกค้าทั่วไป · ตัวแทน</small></span></button>
+      <button class="workspace-jump" type="button" data-jump="zone-products"><span class="wj-icon">🎀</span><span><b>สินค้า</b><small>จัดการสินค้าและรูปภาพ</small></span></button>
+      <button class="workspace-jump" type="button" data-jump="zone-store"><span class="wj-icon">🏪</span><span><b>หน้าร้าน</b><small>สถานะร้าน · ประกาศ</small></span></button>
+    </nav>
     <section class="admin-view is-active" id="view-sales" data-panel="sales">
 <div class="rate-order-section" id="rateOrderManagement">
   <h2>💸 ระบบเรทราคาและบันทึกออเดอร์</h2>
   <p class="ro-help">จัดการเรทราคาลูกค้าทั่วไป/ตัวแทน เพิ่มจำนวนเหรียญเองสำหรับโปรโมชัน และบันทึกประเภทสินค้าเพื่อดูรายงานรายเดือน ราคาจะถูกบันทึกเป็นภาพ ณ วันที่ขาย จึงไม่เปลี่ยนตามเรทในอนาคต</p>
 
-  <div class="ro-box" style="margin-bottom:14px">
-    <h3>⚙️ จัดการเรทราคา</h3>
+  <div class="ro-box workspace-zone" id="zone-rates" style="margin-bottom:14px">
+    <h3 class="workspace-zone-heading">💜 จัดการเรทราคา</h3>
     <div class="ro-help">แก้ราคาแล้วกดบันทึกเรท รายการที่บันทึกเป็นออเดอร์ไปแล้วจะไม่ถูกแก้ตาม</div>
     <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>จำนวนเหรียญ</th><th>ราคาลูกค้าทั่วไป (บาท)</th><th>ราคาตัวแทน (บาท)</th><th>ต้นทุน</th><th>ใช้งาน</th><th>จัดการ</th></tr></thead><tbody id="rateRows"><tr><td colspan="6">กำลังโหลดเรทราคา...</td></tr></tbody></table></div>
     <form id="rateForm" style="margin-top:12px">
@@ -241,8 +269,8 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
     </form>
   </div>
 
-  <div class="ro-box" style="margin-bottom:14px">
-    <h3>🪙 บันทึกเติมเหรียญ / ต้นทุนสต็อก</h3>
+  <div class="ro-box workspace-zone" id="zone-stock" style="margin-bottom:14px">
+    <h3 class="workspace-zone-heading">🪙 คลังเหรียญและต้นทุนสต็อก</h3>
     <p class="ro-help">บันทึกรายการซื้อเหรียญหรือยอดยกมาเดิมได้ แก้ไขย้อนหลังและลบได้เมื่อยืนยัน รายการนี้ใช้ติดตามต้นทุน ไม่ได้ตัดสต็อกอัตโนมัติ</p>
     <form id="topupForm">
       <div class="ro-two">
@@ -260,8 +288,8 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
   </div>
 
   <div class="ro-cols">
-    <form class="ro-box" id="orderForm">
-      <h3>🧾 บันทึกออเดอร์</h3>
+    <form class="ro-box workspace-zone" id="orderForm">
+      <h3 class="workspace-zone-heading">🧾 บันทึกออเดอร์</h3>
       <div class="ro-two">
         <div class="ro-field"><label for="orderDate">วันที่ขาย *</label><input id="orderDate" type="date" required></div>
         <div class="ro-field"><label for="orderBuyerType">ประเภทผู้ซื้อ *</label><select id="orderBuyerType" required><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div>
@@ -287,8 +315,8 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       <div class="ro-inline"><button class="primary" id="saveOrder" type="submit">＋ บันทึกออเดอร์</button><button class="back" id="cancelOrderEdit" type="button" style="display:none">ยกเลิกแก้ไข</button></div>
       <div class="ro-msg" id="orderStatus"></div>
     </form>
-    <div class="ro-box">
-      <h3>📅 รายงานสรุปรายรับ–รายจ่าย</h3>
+    <div class="ro-box workspace-zone" id="zone-reports">
+      <h3 class="workspace-zone-heading">📅 รายงานสรุปรายรับ–รายจ่าย</h3>
       <div class="report-period" role="group" aria-label="เลือกรูปแบบช่วงเวลารายงาน">
         <button type="button" class="report-period-btn" data-period="day">☀️ รายวัน</button>
         <button type="button" class="report-period-btn" data-period="week">🌷 รายสัปดาห์</button>
@@ -314,13 +342,14 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
     </div>
   </div>
 
-  <div style="margin-top:18px;font-weight:800">📚 ประวัติออเดอร์</div>
+  <div id="zone-orders" class="workspace-zone" style="margin-top:18px;font-weight:800">📚 ประวัติออเดอร์</div>
   <div class="ro-filter"><div class="ro-field"><label for="historyCategory">กรองประเภทสินค้า</label><select id="historyCategory"><option value="">ทุกประเภท</option><option value="sticker">สติกเกอร์ LINE</option><option value="theme">ธีม</option><option value="emoji">อีโมจิ</option><option value="melody">เมโลดี้</option></select></div><div class="ro-field"><label for="historyBuyer">กรองผู้ซื้อ</label><select id="historyBuyer"><option value="">ทุกประเภทผู้ซื้อ</option><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div><button class="primary" id="filterHistory" type="button">กรองรายการ</button></div>
   <div style="display:flex;justify-content:flex-end;margin:10px 0"><button class="back" id="toggleOrderHistory" type="button" aria-expanded="false" style="display:none">ดูเพิ่มเติม</button></div>
   <div class="ro-table-wrap"><table class="ro-table"><thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า / เหรียญ</th><th>ผู้ซื้อ</th><th>จำนวน</th><th>ราคา ณ วันขาย</th><th>ยอดขาย</th><th>กำไร</th><th>จัดการ</th></tr></thead><tbody id="orderRows"><tr><td colspan="9">กำลังโหลด...</td></tr></tbody></table></div>
 </div>
     </section>
     <section class="admin-view" id="view-store" data-panel="store">
+<div id="zone-store" class="workspace-zone" style="scroll-margin-top:20px">
 <div class="store-control" style="border:1px solid #eadff0;border-radius:16px;padding:14px;margin-bottom:16px;background:#faf7fc">
   <div style="font-weight:800;margin-bottom:8px">🏪 สถานะร้าน</div>
   <div id="storeStatus" style="font-size:13px;margin-bottom:10px">กำลังตรวจสอบ...</div>
@@ -340,8 +369,10 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
   <div id="announcementStatus" style="font-size:12px;color:#9b3030;min-height:18px;margin-bottom:8px"></div>
   <div class="toolbar" style="margin:0"><button class="primary" id="saveAnnouncement" type="button">📢 บันทึกประกาศ</button><button class="back" id="disableAnnouncement" type="button">ซ่อนประกาศ</button></div>
 </div>
+</div>
     </section>
     <section class="admin-view" id="view-products" data-panel="products">
+<div id="zone-products" class="workspace-zone" style="scroll-margin-top:20px">
       <div class="products-intro"><div><h3>คลังสินค้าของร้าน</h3><p>จัดการข้อมูลสินค้า รูปหลัก รูปตัวอย่าง และลิงก์สั่งซื้อ</p></div><div class="product-count-mark">✦ Catalog</div></div>
 <div class="toolbar product-toolbar">
 <button class="primary" id="addProduct">＋ เพิ่มสินค้าใหม่</button>
@@ -352,6 +383,7 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
 <table><thead><tr><th>รูป</th><th>ชื่อสินค้า</th><th>หมวด</th><th>ราคา</th><th>เหรียญ</th><th>จัดการ</th></tr></thead>
 <tbody id="productRows"></tbody></table>
 <div id="empty" class="empty" style="display:none">ยังไม่มีสินค้าในระบบ</div>
+</div>
 </div>
     </section>
   </main>
@@ -930,5 +962,28 @@ document.getElementById('logout').addEventListener('click',async()=>{await windo
  toggle.addEventListener('click',()=>setOpen(!panel.classList.contains('open')));close.addEventListener('click',()=>setOpen(false));const orderRows=document.getElementById('orderRows');if(orderRows){const obs=new MutationObserver(()=>{if(panel.classList.contains('open'))refresh();});obs.observe(orderRows,{childList:true,subtree:true});}})();
 </script>
 
+
+<script id="workspaceJumpScript">
+(function(){
+  const jumpButtons=[...document.querySelectorAll('.workspace-jump')];
+  const panelMap={ 'zone-store':'store', 'zone-products':'products' };
+  jumpButtons.forEach(btn=>btn.addEventListener('click',()=>{
+    const targetId=btn.dataset.jump;
+    const target=document.getElementById(targetId);
+    if(!target)return;
+    const panel=panelMap[targetId];
+    if(panel){
+      const nav=document.querySelector('.nav-item[data-view="'+panel+'"]');
+      if(nav)nav.click();
+      setTimeout(()=>target.scrollIntoView({behavior:'smooth',block:'start'}),180);
+    }else{
+      const salesNav=document.querySelector('.nav-item[data-view="sales"]');
+      if(salesNav && !document.getElementById('view-sales').classList.contains('is-active'))salesNav.click();
+      target.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+    jumpButtons.forEach(b=>b.classList.toggle('is-current',b===btn));
+  }));
+})();
+</script>
 </body>
 </html>
