@@ -302,8 +302,10 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
   </details>
 
   <div class="ro-cols">
-    <form class="ro-box workspace-zone" id="orderForm">
-      <h3 class="workspace-zone-heading">🧾 บันทึกออเดอร์</h3>
+    <details class="ro-box workspace-zone collapsible-zone" id="zone-orders" open>
+      <summary class="workspace-zone-heading"><span>🧾 บันทึกออเดอร์</span><span class="collapse-caret" aria-hidden="true">⌄</span></summary>
+      <div class="collapsible-content">
+    <form class="workspace-zone" id="orderForm">
       <div class="ro-two">
         <div class="ro-field"><label for="orderDate">วันที่ขาย *</label><input id="orderDate" type="date" required></div>
         <div class="ro-field"><label for="orderBuyerType">ประเภทผู้ซื้อ *</label><select id="orderBuyerType" required><option value="customer">ลูกค้าทั่วไป</option><option value="agent">ตัวแทนจำหน่าย</option></select></div>
@@ -329,6 +331,8 @@ button.primary{background:linear-gradient(135deg,#a88be9,#8060c9)!important;box-
       <div class="ro-inline"><button class="primary" id="saveOrder" type="submit">＋ บันทึกออเดอร์</button><button class="back" id="cancelOrderEdit" type="button" style="display:none">ยกเลิกแก้ไข</button></div>
       <div class="ro-msg" id="orderStatus"></div>
     </form>
+      </div>
+    </details>
     <div class="ro-box workspace-zone" id="zone-reports">
       <h3 class="workspace-zone-heading">📅 รายงานสรุปรายรับ–รายจ่าย</h3>
       <div class="report-period" role="group" aria-label="เลือกรูปแบบช่วงเวลารายงาน">
